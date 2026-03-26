@@ -24,8 +24,6 @@ export default function Home() {
   const [lang, setLang] = useState<"zh" | "en">("zh");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { const saved = localStorage.getItem("sf_apikey"); if (saved) setApiKey(saved); }, []);
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
