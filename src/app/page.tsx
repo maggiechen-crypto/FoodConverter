@@ -159,7 +159,7 @@ export default function Home() {
         )}
         {step === "recipe" && recipe && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <div className="flex justify-end mb-4"><button onClick={toggleLang} className="flex items-center gap-1 px-3 py-1 text-sm text-purple-600 border border-purple-600 rounded-full"><Languages className="w-4 h-4" />{lang === "zh" ? "English" : "中文"}</button></div>
+            {/* <div className="flex justify-end mb-4"><button onClick={toggleLang} className="flex items-center gap-1 px-3 py-1 text-sm text-purple-600 border border-purple-600 rounded-full"><Languages className="w-4 h-4" />{lang === "zh" ? "English" : "中文"}</button></div> */}
             <h2 className="text-xl font-bold text-center mb-6">{recipe.name}</h2>
             <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🥩 {lang === "zh" ? "食材" : "Ingredients"}</h3><div className="bg-gray-50 p-4 rounded-xl">{recipe.ingredients.join(", ")}</div></div>
             <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🧂 {lang === "zh" ? "调料" : "Seasonings"}</h3><div className="space-y-2">{recipe.seasonings.map((s, i) => (<div key={i} className="bg-green-50 px-4 py-2 rounded-lg text-sm">{s}</div>))}</div></div>
