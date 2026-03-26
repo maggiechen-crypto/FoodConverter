@@ -12,6 +12,7 @@ interface Recipe {
 
 export default function Home() {
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
+  const [apiKey, setApiKey] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [imageBase64, setImageBase64] = useState("");
   const [detectedIngredients, setDetectedIngredients] = useState("");
@@ -22,6 +23,8 @@ export default function Home() {
   const [error, setError] = useState("");
   const [lang, setLang] = useState<"zh" | "en">("zh");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { const saved = localStorage.getItem("sf_apikey"); if (saved) setApiKey(saved); }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,7 +47,7 @@ export default function Home() {
       const res = await fetch("/api/food", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "recognize", imageBase64 }),
+        body: JSON.stringify({ action: "recognize", imageBase64, apiKey }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -67,7 +70,7 @@ export default function Home() {
       const res = await fetch("/api/food", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "generate", ingredients, lang }),
+        body: JSON.stringify({ action: "generate", ingredients, lang, apiKey }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -127,6 +130,10 @@ export default function Home() {
         <div className="text-center text-white mb-6">
           <h1 className="text-2xl font-bold flex items-center justify-center gap-2"><ChefHat className="w-8 h-8" /> FoodConverter</h1>
           <p className="text-white/80 text-sm">拍照识菜 AI 食谱生成器</p>
+        </div>
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-lg flex gap-2">
+          <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="输入硅基流动 API Key" className="flex-1 px-4 py-2 border border-gray-200 rounded-xl" />
+          <button onClick={() => localStorage.setItem("sf_apikey", apiKey)} className="px-4 py-2 bg-purple-600 text-white rounded-xl">保存</button>
         </div>
         {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-4">{error}</div>}
         {step === "upload" && (
