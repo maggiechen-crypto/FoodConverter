@@ -128,25 +128,28 @@ export default function Home() {
     lines.forEach((line) => {
       const trimmed = line.trim();
       if (!trimmed) return;
-      if (trimmed.startsWith("菜名：") || trimmed.startsWith("菜名:")) {
-        recipe.name = trimmed.replace(/菜名[：:]\s*/, "");
-      } else if (trimmed.startsWith("食材：") || trimmed.startsWith("食材:")) {
+      // 支持中英文
+      if (trimmed.match(/^(菜名|Dish name)[:：]/i)) {
+        recipe.name = trimmed.replace(/^(菜名|Dish name)[:：]\s*/i, "");
+      } else if (trimmed.match(/^(食材|Ingredients|For the)[:：]/i)) {
         section = "ingredients";
-        const items = trimmed.replace(/食材[：:]\s*/, "").split(/[,，、]/);
-        items.forEach((item) => {
-          if (item.trim()) recipe.ingredients.push(item.trim());
-        });
-      } else if (trimmed.startsWith("调料：") || trimmed.startsWith("调料:")) {
+        const items = trimmed.replace(/^(食材|Ingredients|For the)[:：]\s*/i, "").split(/[,，、;]/);
+        items.forEach((item) => { if (item.trim()) recipe.ingredients.push(item.trim()); });
+      } else if (trimmed.match(/^(调料|Seasonings?|For the)[:：]/i)) {
         section = "seasonings";
-        const items = trimmed.replace(/调料[：:]\s*/, "").split(/[,，、]/);
-        items.forEach((item) => {
-          if (item.trim()) recipe.seasonings.push(item.trim());
-        });
+        const items = trimmed.replace(/^(调料|Seasonings?|For the)[:：]\s*/i, "").split(/[,，、;]/);
+        items.forEach((item) => { if (item.trim()) recipe.seasonings.push(item.trim()); });
       } else if (trimmed.match(/^\d+[.、]/)) {
         const step = trimmed.replace(/^\d+[.、]\s*/, "");
         if (step) recipe.steps.push(step);
       } else if (section === "ingredients" && trimmed) {
         recipe.ingredients.push(trimmed);
+      } else if (section === "seasonings" && trimmed) {
+        recipe.seasonings.push(trimmed);
+      }
+    });
+    return recipe;
+  };
       } else if (section === "seasonings" && trimmed) {
         recipe.seasonings.push(trimmed);
       }
