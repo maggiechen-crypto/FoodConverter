@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍳 拍照识菜 - 食谱生成器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; color: white; margin-bottom: 30px; font-size: 2rem; }
+        .upload-zone, .result-section { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .result-section { display: none; }
+        .upload-zone { text-align: center; }
+        .upload-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px 40px; border: none; border-radius: 30px; font-size: 1.1rem; cursor: pointer; }
+        .preview { max-width: 100%; max-height: 300px; border-radius: 10px; margin-top: 20px; display: none; }
+        .ingredients-stack { display: flex; flex-direction: column; align-items: center; gap: 5px; margin: 30px 0; }
+        .ingredient-layer { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; padding: 12px 30px; border-radius: 25px; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(245,87,108,0.4); animation: floatIn 0.5s ease-out forwards; opacity: 0; transform: translateY(-20px); }
+        .ingredient-layer:nth-child(2) { animation-delay: 0.1s; }
+        .ingredient-layer:nth-child(3) { animation-delay: 0.2s; }
+        .ingredient-layer:nth-child(4) { animation-delay: 0.3s; }
+        .ingredient-layer:nth-child(5) { animation-delay: 0.4s; }
+        .ingredient-layer:nth-child(6) { animation-delay: 0.5s; }
+        .ingredient-layer:nth-child(7) { animation-delay: 0.6s; }
+        @keyframes floatIn { to { opacity: 1; transform: translateY(0); } }
+        .recipe-content { margin-top: 30px; }
+        .recipe-section { margin-bottom: 25px; }
+        .recipe-section h3 { color: #667eea; margin-bottom: 15px; font-size: 1.2rem; }
+        .ingredient-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .ingredient-list li { background: #f8f9fa; padding: 10px 15px; border-radius: 10px; }
+        .ingredient-text { background: #f8f9fa; padding: 15px; border-radius: 10px; line-height: 1.8; }
+        .seasoning-list { list-style: none; margin-top: 10px; }
+        .seasoning-list li { background: #e8f5e9; padding: 8px 15px; border-radius: 8px; margin-bottom: 8px; display: block; width: 100%; }
+        .steps-list { list-style: none; counter-reset: step; }
+        .steps-list li { position: relative; padding-left: 40px; margin-bottom: 15px; line-height: 1.6; color: #555; }
+        .steps-list li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; width: 28px; height: 28px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .loading { text-align: center; padding: 40px; display: none; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .api-key-input input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; }
+        .api-key-input label { display: block; margin-bottom: 8px; color: #666; }
+        .edit-ingredients { background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 20px 0; }
+        .edit-ingredients textarea { width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .generate-recipe-btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; margin-top: 15px; }
+        .language-toggle { text-align: right; margin-bottom: 15px; }
+        .language-toggle select { padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; cursor: pointer; }
+        .debug-info { background: #fff3cd; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: #856404; }
+        .show-api-btn { background: #ffc107; color: #333; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; margin-left: 10px; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🍳 拍照识菜 生成食谱</h1>
+    
+    <div style="text-align:right;margin-bottom:10px;">
+        <button class="show-api-btn" onclick="showApiSection()">设置 API Key</button>
+    </div>
+    
+    <div class="result-section" id="apiSection">
+        <h2>⚙️ 设置 API Key</h2>
+        <div class="api-key-input">
+            <label>硅基流动 API Key：<a href="https://siliconflow.cn" target="_blank">siliconflow.cn</a></label>
+            <input type="password" id="apiKey" placeholder="输入你的 API Key">
+        </div>
+        <p style="color:#888;font-size:0.85rem">💡 注册送额度，识别几分钱一张</p>
+        <button class="upload-btn" onclick="saveApiKey()">保存并继续</button>
+    </div>
+    
+    <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/*">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📷 拍照/上传图片</button>
+        <p style="margin-top:15px;color:#888">支持 JPG、PNG</p>
+        <img id="preview" class="preview" alt="预览">
+    </div>
+    
+    <div class="result-section" id="ingredientSection">
+        <h2>🥬 识别出的食材</h2>
+        <div class="ingredients-stack" id="ingredientsStack"></div>
+        <div class="edit-ingredients">
+            <label>📝 可编辑食材（逗号分隔）：</label>
+            <textarea id="editIngredients"></textarea>
+            <button class="generate-recipe-btn" onclick="generateRecipe()">生成食谱</button>
+        </div>
+    </div>
+    
+    <div class="result-section" id="recipeSection">
+        <div class="language-toggle">
+            <select id="languageSelect" onchange="changeLanguage()">
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <h2 id="recipeTitle">📋 食谱详情 Recipe</h2>
+        <div class="recipe-content" id="recipeContent"></div>
+    </div>
+    
+    <div class="result-section loading" id="loadingSection">
+        <div class="spinner"></div>
+        <p id="loadingText">正在识别...</p>
+        <div class="debug-info" id="debugInfo"></div>
+    </div>
+</div>
+<script>
+let currentImageBase64='',detectedIngredients=[],recipeData=null;
+
+function showApiSection(){
+    document.getElementById('apiSection').style.display='block';
+}
+
+window.onload=function(){
+    const k=localStorage.getItem('sf_apikey');
+    if(k){
+        document.getElementById('apiKey').value=k;
+        document.getElementById('apiSection').style.display='none';
+    }else{
+        document.getElementById('apiSection').style.display='block';
+    }
+};
+
+function saveApiKey(){
+    const k=document.getElementById('apiKey').value.trim();
+    if(!k){alert('请输入API Key');return;}
+    localStorage.setItem('sf_apikey',k);
+    document.getElementById('apiSection').style.display='none';
+}
+
+document.getElementById('fileInput').addEventListener('change',function(e){
+    const f=e.target.files[0];
+    if(!f)return;
+    const r=new FileReader();
+    r.onload=function(evt){
+        currentImageBase64=evt.target.result.split(',')[1];
+        document.getElementById('preview').src=evt.target.result;
+        document.getElementById('preview').style.display='block';
+        recognizeIngredients();
+    };
+    r.readAsDataURL(f);
+});
+
+function showDebug(msg){
+    document.getElementById('debugInfo').textContent = msg;
+}
+
+async function recognizeIngredients(){
+    const apiKey=localStorage.getItem('sf_apikey');
+    if(!apiKey){alert('请先设置API Key');showApiSection();return;}
+    document.getElementById('loadingSection').style.display='block';
+    document.getElementById('loadingText').textContent='正在识别食材...';
+    showDebug('开始识别...');
+    
+    try{
+        const resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+            body:JSON.stringify({
+                model:"Qwen/Qwen2-VL-72B-Instruct",
+                messages:[
+                    {
+                        role: "user",
+                        content: [
+                            { type: "image_url", image_url: { url: "data:image/jpeg;base64," + currentImageBase64 } },
+                            { type: "text", text: "请识别这张图片中的食材。用中文列出所有食材，用逗号分隔。只输出食材名称，不要其他解释。" }
+                        ]
+                    }
+                ],
+                max_tokens:1024
+            })
+        });
+        
+        showDebug('API响应: ' + resp.status);
+        const data=await resp.json();
+        
+        if(data.error){
+            showDebug('API错误: ' + JSON.stringify(data.error));
+            alert('API错误: '+data.error.message);
+            document.getElementById('loadingSection').style.display='none';
+            return;
+        }
+        
+        const content=data.choices[0].message.content;
+        showDebug('原始响应: ' + content);
+        
+        // 解析：用逗号分割，兼容中文逗号和英文逗号
+        detectedIngredients = content.split(/[,，]/).map(i => i.trim()).filter(i => i && i.length > 0);
+        
+        if(detectedIngredients.length === 0){
+            showDebug('未能识别到食材，请重试');
+            alert('未能识别到食材，请重试');
+            document.getElementById('loadingSection').style.display='none';
+            return;
+        }
+        
+        displayIngredients();
+    }catch(e){
+        showDebug('错误: ' + e.message);
+        alert('识别失败:'+e.message);
+    }finally{
+        document.getElementById('loadingSection').style.display='none';
+    }
+}
+
+function displayIngredients(){
+    const stack=document.getElementById('ingredientsStack');
+    const edit=document.getElementById('editIngredients');
+    stack.innerHTML='';
+    detectedIngredients.forEach(ing=>{
+        const d=document.createElement('div');
+        d.className='ingredient-layer';
+        d.textContent=ing;
+        stack.appendChild(d);
+    });
+    edit.value=detectedIngredients.join('，');
+    document.getElementById('ingredientSection').style.display='block';
+}
+
+async function generateRecipe(){
+    const apiKey=localStorage.getItem('sf_apikey');
+    const ingredients=document.getElementById('editIngredients').value;
+    const lang=document.getElementById('languageSelect').value;
+    const langPrompt=lang==='en'?'Reply in English.':'请用中文回复。';
+    
+    if(!apiKey){alert('请先设置API Key');showApiSection();return;}
+    if(!ingredients.trim()){alert('请先识别食材');return;}
+    
+    document.getElementById('loadingSection').style.display='block';
+    document.getElementById('loadingText').textContent='正在生成食谱...';
+    showDebug('开始生成食谱...');
+    
+    try{
+        const resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+            body:JSON.stringify({
+                model:"Qwen/Qwen2.5-72B-Instruct",
+                messages:[{
+                    role:"user",
+                    content:"食材："+ingredients+"\n\n请根据以上食材生成一道菜的食谱。格式如下：\n菜名：xxx\n食材：xxx（给出具体用量，如200g, 2个）\n调料：xxx（给出具体用量，如1勺=15ml, 1茶匙=5ml, 绝对不要写\"适量\",必须写具体用量）\n步骤：1.xxx 2.xxx 3.xxx\n"+langPrompt
+                }],
+                max_tokens:2048
+            })
+        });
+        
+        showDebug('API响应: ' + resp.status);
+        const data=await resp.json();
+        
+        if(data.error){
+            showDebug('API错误: ' + JSON.stringify(data.error));
+            alert('API错误: '+data.error.message);
+            document.getElementById('loadingSection').style.display='none';
+            return;
+        }
+        
+        const content=data.choices[0].message.content;
+        parseAndDisplayRecipe(content, document.getElementById('languageSelect').value);
+    }catch(e){
+        showDebug('错误: ' + e.message);
+        alert('生成失败:'+e.message);
+    }finally{
+        document.getElementById('loadingSection').style.display='none';
+    }
+}
+
+function parseAndDisplayRecipe(content, lang='zh'){
+    const c=document.getElementById('recipeContent');
+    const titleEl = document.getElementById('recipeTitle');
+    const titleText = lang === 'en' ? '📋 Recipe Details' : '📋 食谱详情';
+    titleEl.textContent = titleText;
+    let dishName='未命名菜品',ingredients=[],seasonings=[],steps=[];
+    const lines=content.split('\n');
+    let currentSection='';
+    
+    lines.forEach(line=>{
+        line=line.trim();
+        if(!line)return;
+        
+        // 支持中英文关键字 - 更灵活匹配
+        if(line.match(/^(菜名|Dish name)[:：]/i)){
+            dishName=line.replace(/^(菜名|Dish name)[:：]\s*/i,'');
+        }else if(line.match(/^(食材|Ingredients|For the)[:：]/i)){
+            currentSection='食材';
+            const arr=line.replace(/^(食材|Ingredients|For the)[:：]\s*/i,'').split(/[,，、;]/);
+            arr.forEach(a=>{if(a.trim())ingredients.push({名称:a.trim(),用量:''})});
+        }else if(line.match(/^(调料|Seasoning[s]?|For the seasoning)[:：]/i)){
+            currentSection='调料';
+            const arr=line.replace(/^(调料|Seasoning[s]?|For the seasoning)[:：]\s*/i,'').split(/[,，、;]/);
+            arr.forEach(a=>{if(a.trim())seasonings.push({名称:a.trim(),用量:''})});
+        }else if(line.match(/^\d+[.、.\)]/)){
+            const stepMatch=line.match(/^\d+[.、.\)]\s*(.+)/);
+            if(stepMatch)steps.push(stepMatch[1]);
+        }else if(currentSection==='食材'&&line){
+            ingredients.push({名称:line,用量:''});
+        }else if(currentSection==='调料'&&line){
+            seasonings.push({名称:line,用量:''});
+        }
+    });
+    
+    // 如果没有识别到内容，显示原始返回
+    if(ingredients.length===0 && content){
+        c.innerHTML = '<pre style="white-space:pre-wrap;word-wrap:break-word;">'+content+'</pre>';
+    }else{
+        if(ingredients.length===0){
+            ingredients=[{名称:ingredients.join('、')||'未识别',用量:''}];
+        }
+        
+        const ingLabel = lang === 'en' ? 'Ingredients:' : '食材';
+        const seaLabel = lang === 'en' ? 'Seasonings:' : '调料';
+        const stepLabel = lang === 'en' ? 'Steps:' : '步骤';
+        
+        // 确保dishName有值
+        const displayName = dishName || (lang === 'en' ? 'Unknown Dish' : '未命名菜品');
+        
+        c.innerHTML='<h2 style="text-align:center;margin-bottom:20px">'+displayName+'</h2>'+
+            '<div class="recipe-section"><h3>🥩 '+ingLabel+'</h3><div class="ingredient-text">'+
+            ingredients.map(i=>i.名称+(i.用量?' - '+i.用量:'')).join('， ')+
+            '</div></div><div class="recipe-section"><h3>🧂 '+seaLabel+'</h3><ul class="seasoning-list" style="display:block;">'+
+            seasonings.map(s=>'<li>'+s.名称+(s.用量?' - '+s.用量:'')+'</li>').join('')+
+            '</ul></div><div class="recipe-section"><h3>📝 '+stepLabel+'</h3><ol class="steps-list">'+
+            steps.map(s=>'<li>'+s+'</li>').join('')+'</ol></div>';
+    }
+    
+    document.getElementById('recipeSection').style.display='block';
+    document.getElementById('recipeSection').scrollIntoView({behavior:'smooth'});
+}
+
+async function changeLanguage(){
+    const apiKey=localStorage.getItem('sf_apikey');
+    const ingredients=document.getElementById('editIngredients').value;
+    const lang=document.getElementById('languageSelect').value;
+    if(!ingredients){alert('请先识别食材');return;}
+    const langPrompt=lang==='en'?'Reply in English.':'请用中文回复。';
+    document.getElementById('loadingSection').style.display='block';
+    try{
+        const resp=await fetch('https://api.siliconflow.cn/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:"Qwen/Qwen2.5-72B-Instruct",messages:[{role:"user",content:"食材："+ingredients+"\n\n请根据以上食材生成一道菜的食谱。格式如下：\n菜名：xxx\n食材：xxx（给出具体用量，如200g, 2个）\n调料：xxx（绝对不要写\"适量\",必须写具体用量如盐半勺=3g, 生抽1勺=15ml, 糖1茶匙=5g）\n步骤：1.xxx 2.xxx 3.xxx\n"+langPrompt}],max_tokens:2048})});
+        const data=await resp.json();
+        showDebug('切换语言: ' + resp.status + ' | ' + JSON.stringify(data));
+        if(data.error){
+            showDebug('API错误: ' + JSON.stringify(data.error));
+            alert('切换失败: '+data.error.message);
+        }else if(data.choices && data.choices[0]){
+            parseAndDisplayRecipe(data.choices[0].message.content, lang);
+            document.getElementById('recipeSection').style.display='block';
+        }else{
+            alert('生成失败，请重试');
+        }
+    }catch(e){
+        showDebug('错误: ' + e.message);
+        alert('生成失败:'+e.message);
+    }finally{
+        document.getElementById('loadingSection').style.display='none';
+    }
+}</script>
+</body>
+</html>
