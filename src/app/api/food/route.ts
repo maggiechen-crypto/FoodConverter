@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE = 'https://api.siliconflow.cn/v1/chat/completions';
 
+// 使用服务端环境变量
+const getApiKey = (bodyApiKey?: string) => {
+  return process.env.SILICONFLOW_API_KEY || bodyApiKey;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, imageBase64, ingredients, lang, apiKey } = body;
+    const { action, imageBase64, ingredients, lang } = body;
 
+    const apiKey = getApiKey(body.apiKey);
     if (!apiKey) {
       return NextResponse.json({ error: '请先设置 API Key' }, { status: 401 });
     }
