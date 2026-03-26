@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Camera, Upload, Loader2, ChefHat, Languages } from "lucide-react";
 import { recognizeIngredients, generateRecipe } from "@/lib/api";
 
@@ -26,10 +26,10 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load API key from localStorage on mount
-  useState(() => {
+  useEffect(() => {
     const saved = localStorage.getItem("sf_apikey");
     if (saved) setApiKey(saved);
-  });
+  }, []);
 
   const saveApiKey = () => {
     if (!apiKey.trim()) {
