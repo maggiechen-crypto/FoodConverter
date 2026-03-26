@@ -40,6 +40,7 @@ export default function Home() {
 
   const handleRecognize = async () => {
     if (!imageBase64) { setError("请先上传图片"); return; }
+    if (!apiKey) { setError("请先设置 API Key"); return; }
     setLoading(true);
     setLoadingText("正在识别食材...");
     setError("");
