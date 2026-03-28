@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Camera, Loader2, ChefHat, Languages } from "lucide-react";
+import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User } from "lucide-react";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 interface Recipe {
   name: string;
@@ -11,6 +12,8 @@ interface Recipe {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
   
   const [imagePreview, setImagePreview] = useState("");
@@ -126,12 +129,45 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center text-white mb-6">
-          <h1 className="text-2xl font-bold flex items-center justify-center gap-2"><ChefHat className="w-8 h-8" /> FoodConverter</h1>
-          <p className="text-white/80 text-sm">拍照识菜 AI 食谱生成器</p>
+        {/* 顶部用户栏 */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-white">
+            <h1 className="text-2xl font-bold flex items-center gap-2"><ChefHat className="w-8 h-8" /> FoodConverter</h1>
+            <p className="text-white/80 text-sm">拍照识菜 AI 食谱生成器</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {status === "loading" ? (
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
+            ) : session ? (
+              <div className="flex items-center gap-2">
+                {session.user?.image && <img src={session.user.image} alt={session.user.name || ""} className="w-8 h-8 rounded-full" />}
+                <button onClick={() => signOut()} className="px-3 py-1 bg-white/20 text-white rounded-full text-sm flex items-center gap-1 hover:bg-white/30">
+                  <LogOut className="w-4 h-4" /> 退出
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => signIn("google")} className="px-4 py-2 bg-white text-purple-600 rounded-full font-medium flex items-center gap-2 hover:bg-white/90">
+                <LogIn className="w-4 h-4" /> 登录
+              </button>
+            )}
+          </div>
         </div>
+
         {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-4">{error}</div>}
-        {step === "upload" && (
+        
+        {/* 未登录时显示登录提示 */}
+        {!session && status !== "loading" && (
+          <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
+            <User className="w-16 h-16 text-purple-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">登录后使用</h2>
+            <p className="text-gray-500 mb-4">点击下方按钮使用 Google 账号登录</p>
+            <button onClick={() => signIn("google")} className="px-6 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium flex items-center gap-2 mx-auto hover:opacity-90">
+              <LogIn className="w-5 h-5" /> 使用 Google 登录
+            </button>
+          </div>
+        )}
+
+        {session && step === "upload" && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500">
               {imagePreview ? <img src={imagePreview} alt="Preview" className="max-h-64 mx-auto rounded-lg" /> : <><Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" /><p className="text-gray-500">点击上传图片或拍照</p></>}
@@ -140,7 +176,7 @@ export default function Home() {
             {imagePreview && <button onClick={handleRecognize} disabled={loading} className="w-full mt-4 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChefHat className="w-5 h-5" />}{loading ? loadingText : "识别食材"}</button>}
           </div>
         )}
-        {step === "ingredients" && (
+        {session && step === "ingredients" && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">🥬 识别出的食材</h2>
             <div className="flex flex-wrap gap-2 mb-4">{detectedIngredients.split(/[,，]/).map((ing, i) => (<span key={i} className="px-4 py-2 bg-gradient-to-r from-[#f093fb] to-[#f5576c] text-white rounded-full text-sm">{ing.trim()}</span>))}</div>
@@ -151,7 +187,7 @@ export default function Home() {
             </div>
           </div>
         )}
-        {step === "recipe" && recipe && (
+        {session && step === "recipe" && recipe && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             {/* <div className="flex justify-end mb-4"><button onClick={toggleLang} className="flex items-center gap-1 px-3 py-1 text-sm text-purple-600 border border-purple-600 rounded-full"><Languages className="w-4 h-4" />{lang === "zh" ? "English" : "中文"}</button></div> */}
             <h2 className="text-xl font-bold text-center mb-6">{recipe.name}</h2>
