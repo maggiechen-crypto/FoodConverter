@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User } from "lucide-react";
+import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User, UserCircle } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import Link from "next/link";
 
 interface Recipe {
   name: string;
@@ -140,7 +141,13 @@ export default function Home() {
               <Loader2 className="w-5 h-5 text-white animate-spin" />
             ) : session ? (
               <div className="flex items-center gap-2">
-                {session.user?.image && <img src={session.user.image} alt={session.user.name || ""} className="w-8 h-8 rounded-full" />}
+                <Link href="/profile">
+                  {session.user?.image ? (
+                    <img src={session.user.image} alt={session.user.name || ""} className="w-8 h-8 rounded-full hover:ring-2 hover:ring-white/50" />
+                  ) : (
+                    <UserCircle className="w-8 h-8 text-white" />
+                  )}
+                </Link>
                 <button onClick={() => signOut()} className="px-3 py-1 bg-white/20 text-white rounded-full text-sm flex items-center gap-1 hover:bg-white/30">
                   <LogOut className="w-4 h-4" /> 退出
                 </button>
