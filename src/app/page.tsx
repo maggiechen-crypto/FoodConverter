@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User, UserCircle, MessageCircle } from "lucide-react";
+import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User, UserCircle, MessageCircle, X, Crown, Check } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Recipe {
   name: string;
@@ -14,9 +15,11 @@ interface Recipe {
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
   const [remainingUsage, setRemainingUsage] = useState<number>(2);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
   const [imageBase64, setImageBase64] = useState("");
   const [detectedIngredients, setDetectedIngredients] = useState("");
@@ -63,7 +66,7 @@ export default function Home() {
     
     // 检查使用次数
     if (remainingUsage <= 0) {
-      setError("今日次数已用完，请明天再来或升级会员");
+      setShowUpgradeModal(true);
       return;
     }
     
@@ -93,7 +96,7 @@ export default function Home() {
     
     // 检查使用次数
     if (remainingUsage <= 0) {
-      setError("今日次数已用完，请明天再来或升级会员");
+      setShowUpgradeModal(true);
       return;
     }
     
@@ -254,6 +257,40 @@ export default function Home() {
           </div>
         )}
         {loading && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="bg-white rounded-2xl p-8 text-center"><Loader2 className="w-10 h-10 text-purple-600 animate-spin mx-auto mb-4" /><p className="text-gray-600">{loadingText}</p></div></div>}
+
+        {/* 升级弹窗 */}
+        {showUpgradeModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Crown className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">次数已用完</h3>
+                <p className="text-gray-500">升级会员，无限次生成！</p>
+              </div>
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                  <Check className="w-4 h-4 text-green-500" /> 无限次AI生成
+                </div>
+                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                  <Check className="w-4 h-4 text-green-500" /> 社区无水印
+                </div>
+                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                  <Check className="w-4 h-4 text-green-500" /> 专属食谱库
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowUpgradeModal(false)} className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-xl">
+                  稍后再说
+                </button>
+                <button onClick={() => router.push('/pricing')} className="flex-1 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium">
+                  查看方案
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
