@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User, UserCircle } from "lucide-react";
+import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User, UserCircle, MessageCircle } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ export default function Home() {
   const { data: session, status } = useSession();
   
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
-  
+  const [remainingUsage, setRemainingUsage] = useState<number>(2);
   const [imagePreview, setImagePreview] = useState("");
   const [imageBase64, setImageBase64] = useState("");
   const [detectedIngredients, setDetectedIngredients] = useState("");
@@ -27,6 +27,24 @@ export default function Home() {
   const [error, setError] = useState("");
   const [lang, setLang] = useState<"zh" | "en">("zh");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 检查每日使用次数
+  useEffect(() => {
+    if (session) {
+      fetch('/api/usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check' })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.remaining !== undefined) {
+            setRemainingUsage(data.remaining);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [session]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,6 +60,12 @@ export default function Home() {
 
   const handleRecognize = async () => {
     if (!imageBase64) { setError("请先上传图片"); return; }
+    
+    // 检查使用次数
+    if (remainingUsage <= 0) {
+      setError("今日次数已用完，请明天再来或升级会员");
+      return;
+    }
     
     setLoading(true);
     setLoadingText("正在识别食材...");
@@ -66,10 +90,27 @@ export default function Home() {
 
   const handleGenerateRecipe = async () => {
     if (!ingredients.trim()) { setError("请先识别食材"); return; }
+    
+    // 检查使用次数
+    if (remainingUsage <= 0) {
+      setError("今日次数已用完，请明天再来或升级会员");
+      return;
+    }
+    
     setLoading(true);
     setLoadingText("正在生成食谱...");
     setError("");
     try {
+      // 先增加使用次数
+      await fetch('/api/usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'increment' })
+      });
+      
+      // 更新剩余次数
+      setRemainingUsage(prev => Math.max(0, prev - 1));
+      
       const res = await fetch("/api/food", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,20 +154,6 @@ export default function Home() {
     return recipe;
   };
 
-  const toggleLang = async () => {
-    const newLang = lang === "zh" ? "en" : "zh";
-    setLang(newLang);
-    if (ingredients) {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/food", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "generate", ingredients, lang: newLang }) });
-        const data = await res.json();
-        if (!data.error) setRecipe(parseRecipe(data.result));
-      } catch {}
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
       <div className="max-w-2xl mx-auto">
@@ -140,7 +167,10 @@ export default function Home() {
             {status === "loading" ? (
               <Loader2 className="w-5 h-5 text-white animate-spin" />
             ) : session ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <Link href="/community" className="p-2 bg-white/20 rounded-full hover:bg-white/30" title="社区">
+                  <MessageCircle className="w-5 h-5 text-white" />
+                </Link>
                 <Link href="/profile">
                   {session.user?.image ? (
                     <img src={session.user.image} alt={session.user.name || ""} className="w-8 h-8 rounded-full hover:ring-2 hover:ring-white/50" />
@@ -159,6 +189,19 @@ export default function Home() {
             )}
           </div>
         </div>
+
+        {/* 显示剩余次数 */}
+        {session && (
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 mb-4 flex items-center justify-between">
+            <span className="text-white text-sm">今日剩余：</span>
+            <div className="flex items-center gap-1">
+              {[...Array(2)].map((_, i) => (
+                <span key={i} className={`w-3 h-3 rounded-full ${i < remainingUsage ? 'bg-green-400' : 'bg-gray-400'}`} />
+              ))}
+              <span className="text-white font-medium ml-2">{remainingUsage}/2</span>
+            </div>
+          </div>
+        )}
 
         {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-4">{error}</div>}
         
@@ -180,7 +223,12 @@ export default function Home() {
               {imagePreview ? <img src={imagePreview} alt="Preview" className="max-h-64 mx-auto rounded-lg" /> : <><Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" /><p className="text-gray-500">点击上传图片或拍照</p></>}
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-            {imagePreview && <button onClick={handleRecognize} disabled={loading} className="w-full mt-4 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChefHat className="w-5 h-5" />}{loading ? loadingText : "识别食材"}</button>}
+            {imagePreview && (
+              <button onClick={handleRecognize} disabled={loading || remainingUsage <= 0} className="w-full mt-4 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChefHat className="w-5 h-5" />}
+                {loading ? loadingText : remainingUsage <= 0 ? "今日次数已用完" : "识别食材"}
+              </button>
+            )}
           </div>
         )}
         {session && step === "ingredients" && (
@@ -190,13 +238,14 @@ export default function Home() {
             <div className="mb-4"><label className="text-sm text-gray-600 block mb-2">📝 可编辑食材（逗号分隔）：</label><textarea value={ingredients} onChange={(e) => setIngredients(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl min-h-[100px]" /></div>
             <div className="flex gap-2">
               <button onClick={() => { setStep("upload"); setImagePreview(""); setImageBase64(""); }} className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-xl">重新拍照</button>
-              <button onClick={handleGenerateRecipe} disabled={loading} className="flex-1 py-3 bg-gradient-to-r from-[#11998e] to-[#38ef7d] text-white rounded-xl disabled:opacity-50">{loading ? loadingText : "生成食谱"}</button>
+              <button onClick={handleGenerateRecipe} disabled={loading || remainingUsage <= 0} className="flex-1 py-3 bg-gradient-to-r from-[#11998e] to-[#38ef7d] text-white rounded-xl disabled:opacity-50">
+                {loading ? loadingText : remainingUsage <= 0 ? "今日次数已用完" : "生成食谱"}
+              </button>
             </div>
           </div>
         )}
         {session && step === "recipe" && recipe && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
-            {/* <div className="flex justify-end mb-4"><button onClick={toggleLang} className="flex items-center gap-1 px-3 py-1 text-sm text-purple-600 border border-purple-600 rounded-full"><Languages className="w-4 h-4" />{lang === "zh" ? "English" : "中文"}</button></div> */}
             <h2 className="text-xl font-bold text-center mb-6">{recipe.name}</h2>
             <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🥩 {lang === "zh" ? "食材" : "Ingredients"}</h3><div className="bg-gray-50 p-4 rounded-xl">{recipe.ingredients.join(", ")}</div></div>
             <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🧂 {lang === "zh" ? "调料" : "Seasonings"}</h3><div className="space-y-2">{recipe.seasonings.map((s, i) => (<div key={i} className="bg-green-50 px-4 py-2 rounded-lg text-sm">{s}</div>))}</div></div>
