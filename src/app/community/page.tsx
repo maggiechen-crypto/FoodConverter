@@ -14,6 +14,7 @@ interface Post {
   image_url: string;
   recipe_name: string;
   description: string;
+  has_watermark?: boolean;
   created_at: string;
   likes_count?: number;
   comments_count?: number;
