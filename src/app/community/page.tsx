@@ -56,7 +56,7 @@ export default function CommunityPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('Posts')
+        .from('posts')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
@@ -136,7 +136,7 @@ export default function CommunityPage() {
 
       // 添加水印（免费版）
       const { error: insertError } = await supabase
-        .from('Posts')
+        .from('posts')
         .insert({
           user_id: session.user.email,
           user_name: session.user.name || '匿名用户',
