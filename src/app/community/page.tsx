@@ -56,7 +56,7 @@ export default function CommunityPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('posts')
+        .from('Posts')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
@@ -122,7 +122,7 @@ export default function CommunityPage() {
       // 上传到 Supabase Storage
       const fileName = `${session.user.email}/${Date.now()}.png`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('posts')
+        .from('Posts')
         .upload(fileName, Uint8Array.from(atob(imageBase64), c => c.charCodeAt(0)), {
           contentType: 'image/png'
         });
@@ -131,12 +131,12 @@ export default function CommunityPage() {
 
       // 获取公开URL
       const { data: { publicUrl } } = supabase.storage
-        .from('posts')
+        .from('Posts')
         .getPublicUrl(fileName);
 
       // 添加水印（免费版）
       const { error: insertError } = await supabase
-        .from('posts')
+        .from('Posts')
         .insert({
           user_id: session.user.email,
           user_name: session.user.name || '匿名用户',
