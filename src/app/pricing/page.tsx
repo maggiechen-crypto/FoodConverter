@@ -20,50 +20,72 @@ export default function PricingPage() {
 
   // 加载 PayPal SDK
   useEffect(() => {
+    if (document.getElementById("paypal-sdk")) return;
     const script = document.createElement("script");
-    script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=CNY";
+    script.id = "paypal-sdk";
+    script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD";
     script.async = true;
     document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
   }, []);
 
   // 渲染 PayPal 按钮
   useEffect(() => {
-    if (!window.paypal || !session) return;
+    if (!session) return;
     
-    const tierConfig = {
-      basic: { planId: "basic-18", price: "18.00" },
-      pro: { planId: "pro-38", price: "38.00" }
+    const renderButton = () => {
+      if (!window.paypal) return;
+      
+      const tierConfig = {
+        basic: { price: "2.99" },
+        pro: { price: "5.99" }
+      };
+      
+      const config = tierConfig[tier];
+      
+      // 清理旧的按钮容器
+      const container = document.getElementById(`paypal-button-${tier}`);
+      if (!container || container.innerHTML.trim()) return;
+      
+      window.paypal.Buttons({
+        style: { layout: "vertical", color: "gold", shape: "rect" },
+        createOrder: (_data: any, actions: any) => {
+          return actions.order.create({
+            purchase_units: [{
+              description: `SnapCook ${tier === "basic" ? "Basic" : "Pro"} Plan`,
+              amount: { currency_code: "USD", value: config.price }
+            }]
+          });
+        },
+        onApprove: async (_data: any, actions: any) => {
+          setLoading(true);
+          try {
+            const order = await actions.order.capture();
+            alert("Payment successful! Thank you for upgrading.");
+          } catch (err) {
+            console.error(err);
+            alert("Payment error. Please try again.");
+          }
+          setLoading(false);
+        },
+        onError: (err: any) => {
+          console.error("PayPal Error:", err);
+          alert("Payment failed. Please try again.");
+        }
+      }).render(`#paypal-button-${tier}`);
     };
-    
-    const config = tierConfig[tier];
-    
-    // 清理旧的按钮容器
-    const container = document.getElementById(`paypal-button-${tier}`);
-    if (container) container.innerHTML = "";
-    
-    window.paypal.Buttons({
-      style: { layout: "vertical", color: "blue", shape: "rect" },
-      createOrder: (_data: any, actions: any) => {
-        return actions.order.create({
-          purchase_units: [{
-            description: `SnapCook ${tier === "basic" ? "基础会员" : "高级会员"}`,
-            amount: { currency_code: "CNY", value: config.price }
-          }]
-        });
-      },
-      onApprove: async (_data: any, actions: any) => {
-        setLoading(true);
-        const order = await actions.order.capture();
-        // TODO: 调用 API 更新用户会员状态
-        alert("支付成功！请重新登录以激活会员");
-        setLoading(false);
-      },
-      onError: (err: any) => {
-        console.error("PayPal Error:", err);
-        alert("支付失败，请重试");
-      }
-    }).render(`#paypal-button-${tier}`);
+
+    // 等待 SDK 加载
+    if (window.paypal) {
+      renderButton();
+    } else {
+      const checkPaypal = setInterval(() => {
+        if (window.paypal) {
+          clearInterval(checkPaypal);
+          renderButton();
+        }
+      }, 500);
+      setTimeout(() => clearInterval(checkPaypal), 10000);
+    }
   }, [session, tier]);
 
   return (
@@ -115,7 +137,7 @@ export default function PricingPage() {
                 <Crown className="w-8 h-8 text-purple-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">基础会员</h2>
-              <p className="text-3xl font-bold text-purple-600 mb-4">¥18<span className="text-sm font-normal text-gray-500">/月</span></p>
+              <p className="text-3xl font-bold text-purple-600 mb-4">$2.99<span className="text-sm font-normal text-gray-500">/月</span></p>
             </div>
             <ul className="space-y-3 mb-6">
               <li className="flex items-center gap-2 text-gray-600">
@@ -155,7 +177,7 @@ export default function PricingPage() {
                 <Star className="w-8 h-8 text-yellow-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">高级会员</h2>
-              <p className="text-3xl font-bold text-yellow-600 mb-4">¥38<span className="text-sm font-normal text-gray-500">/月</span></p>
+              <p className="text-3xl font-bold text-yellow-600 mb-4">$5.99<span className="text-sm font-normal text-gray-500">/月</span></p>
             </div>
             <ul className="space-y-3 mb-6">
               <li className="flex items-center gap-2 text-gray-600">
