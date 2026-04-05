@@ -1,11 +1,70 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Check, Crown, Zap, Star } from "lucide-react";
+import { Check, Crown, Zap, Star, Loader2 } from "lucide-react";
 import Link from "next/link";
+
+declare global {
+  interface Window {
+    paypal?: {
+      Buttons: (config: any) => any;
+    };
+  }
+}
 
 export default function PricingPage() {
   const { data: session } = useSession();
+  const [loading, setLoading] = useState(false);
+  const [tier, setTier] = useState<"basic" | "pro">("basic");
+
+  // 加载 PayPal SDK
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=CNY";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => { document.body.removeChild(script); };
+  }, []);
+
+  // 渲染 PayPal 按钮
+  useEffect(() => {
+    if (!window.paypal || !session) return;
+    
+    const tierConfig = {
+      basic: { planId: "basic-18", price: "18.00" },
+      pro: { planId: "pro-38", price: "38.00" }
+    };
+    
+    const config = tierConfig[tier];
+    
+    // 清理旧的按钮容器
+    const container = document.getElementById(`paypal-button-${tier}`);
+    if (container) container.innerHTML = "";
+    
+    window.paypal.Buttons({
+      style: { layout: "vertical", color: "blue", shape: "rect" },
+      createOrder: (_data: any, actions: any) => {
+        return actions.order.create({
+          purchase_units: [{
+            description: `SnapCook ${tier === "basic" ? "基础会员" : "高级会员"}`,
+            amount: { currency_code: "CNY", value: config.price }
+          }]
+        });
+      },
+      onApprove: async (_data: any, actions: any) => {
+        setLoading(true);
+        const order = await actions.order.capture();
+        // TODO: 调用 API 更新用户会员状态
+        alert("支付成功！请重新登录以激活会员");
+        setLoading(false);
+      },
+      onError: (err: any) => {
+        console.error("PayPal Error:", err);
+        alert("支付失败，请重试");
+      }
+    }).render(`#paypal-button-${tier}`);
+  }, [session, tier]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
@@ -72,9 +131,21 @@ export default function PricingPage() {
                 <span className="w-5 h-5 inline-flex items-center justify-center">×</span> 高级功能
               </li>
             </ul>
-            <button className="w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium hover:opacity-90">
-              {session ? '立即升级' : '登录后购买'}
-            </button>
+            {session ? (
+              <button 
+                onClick={() => setTier("basic")}
+                className="w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium hover:opacity-90"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
+              </button>
+            ) : (
+              <Link href="/api/auth/signin" className="block w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium text-center hover:opacity-90">
+                登录后购买
+              </Link>
+            )}
+            {session && tier === "basic" && (
+              <div id="paypal-button-basic" className="mt-2"></div>
+            )}
           </div>
 
           {/* 高级会员 */}
@@ -100,9 +171,21 @@ export default function PricingPage() {
                 <Check className="w-5 h-5 text-green-500" /> 高级功能
               </li>
             </ul>
-            <button className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90">
-              {session ? '立即升级' : '登录后购买'}
-            </button>
+            {session ? (
+              <button 
+                onClick={() => setTier("pro")}
+                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90"
+              >
+                {loading && tier === "pro" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
+              </button>
+            ) : (
+              <Link href="/api/auth/signin" className="block w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium text-center hover:opacity-90">
+                登录后购买
+              </Link>
+            )}
+            {session && tier === "pro" && (
+              <div id="paypal-button-pro" className="mt-2"></div>
+            )}
           </div>
         </div>
 

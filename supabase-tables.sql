@@ -52,13 +52,13 @@ CREATE POLICY "Anyone can read posts" ON posts FOR SELECT USING (true);
 CREATE POLICY "Anyone can read likes" ON likes FOR SELECT USING (true);
 CREATE POLICY "Anyone can read comments" ON comments FOR SELECT USING (true);
 
--- 登录用户可增删改自己的数据
-CREATE POLICY "Users can insert usage" ON user_usage FOR INSERT WITH CHECK (auth.uid()::text = user_id);
-CREATE POLICY "Users can update own usage" ON user_usage FOR UPDATE USING (auth.uid()::text = user_id);
+-- 登录用户可增删改自己的数据（使用 email 匹配，因为代码里用的是 email）
+CREATE POLICY "Users can insert usage" ON user_usage FOR INSERT WITH CHECK (auth.uid()::text = user_id OR user_id = (SELECT email FROM auth.users WHERE id = auth.uid()));
+CREATE POLICY "Users can update own usage" ON user_usage FOR UPDATE USING (auth.uid()::text = user_id OR user_id = (SELECT email FROM auth.users WHERE id = auth.uid()));
 
-CREATE POLICY "Authenticated users can insert posts" ON posts FOR INSERT WITH CHECK (auth.uid()::text = user_id);
-CREATE POLICY "Users can update own posts" ON posts FOR UPDATE USING (auth.uid()::text = user_id);
-CREATE POLICY "Users can delete own posts" ON posts FOR DELETE USING (auth.uid()::text = user_id);
+CREATE POLICY "Authenticated users can insert posts" ON posts FOR INSERT WITH CHECK (auth.uid()::text = user_id OR user_id = (SELECT email FROM auth.users WHERE id = auth.uid()));
+CREATE POLICY "Users can update own posts" ON posts FOR UPDATE USING (auth.uid()::text = user_id OR user_id = (SELECT email FROM auth.users WHERE id = auth.uid()));
+CREATE POLICY "Users can delete own posts" ON posts FOR DELETE USING (auth.uid()::text = user_id OR user_id = (SELECT email FROM auth.users WHERE id = auth.uid()));
 
 CREATE POLICY "Authenticated users can insert likes" ON likes FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 CREATE POLICY "Users can delete own likes" ON likes FOR DELETE USING (auth.uid()::text = user_id);
