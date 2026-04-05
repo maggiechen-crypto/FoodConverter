@@ -17,6 +17,20 @@ export default function PricingPage() {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [tier, setTier] = useState<"basic" | "pro">("basic");
+  const [currentTier, setCurrentTier] = useState<string>("free");
+
+  // 检查当前会员状态
+  useEffect(() => {
+    if (!session?.user?.email) return;
+    fetch('/api/subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'check', user_id: session.user.email })
+    })
+      .then(res => res.json())
+      .then(data => setCurrentTier(data.tier || 'free'))
+      .catch(console.error);
+  }, [session]);
 
   // 加载 PayPal SDK
   useEffect(() => {
@@ -60,10 +74,26 @@ export default function PricingPage() {
           setLoading(true);
           try {
             const order = await actions.order.capture();
-            alert("Payment successful! Thank you for upgrading.");
+            // 调用 API 开通会员
+            const res = await fetch('/api/subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'upgrade',
+                user_id: session?.user?.email,
+                tier: tier
+              })
+            });
+            const result = await res.json();
+            if (result.success) {
+              alert("升级成功！🎉 感谢您的支持");
+              window.location.reload();
+            } else {
+              alert("支付成功，但开通会员失败，请联系客服");
+            }
           } catch (err) {
             console.error(err);
-            alert("Payment error. Please try again.");
+            alert("支付出错，请重试");
           }
           setLoading(false);
         },
@@ -123,7 +153,7 @@ export default function PricingPage() {
               </li>
             </ul>
             <button className="w-full py-3 border border-gray-300 text-gray-500 rounded-xl font-medium cursor-not-allowed">
-              当前方案
+              {currentTier === "free" ? "当前方案" : "已降级"}
             </button>
           </div>
 

@@ -12,8 +12,22 @@ export async function POST(req: NextRequest) {
     const { action } = await req.json();
     const userId = session.user.email;
 
+    // 检查会员状态
+    const { data: sub } = await supabase
+      .from('subscriptions')
+      .select('tier, status')
+      .eq('user_id', userId)
+      .single();
+    
+    const isPremium = sub && sub.status === 'active' && (sub.tier === 'basic' || sub.tier === 'pro');
+
     if (action === 'check') {
-      // 检查今日次数
+      // 会员无限次
+      if (isPremium) {
+        return NextResponse.json({ remaining: 999, limit: 999, tier: sub.tier });
+      }
+      
+      // 免费版检查次数
       const today = new Date().toISOString().split('T')[0];
       const { data: usage } = await supabase
         .from('user_usage')
@@ -23,14 +37,18 @@ export async function POST(req: NextRequest) {
         .single();
 
       const remaining = usage ? Math.max(0, 2 - usage.count) : 2;
-      return NextResponse.json({ remaining, limit: 2 });
+      return NextResponse.json({ remaining, limit: 2, tier: 'free' });
     }
 
     if (action === 'increment') {
-      // 增加使用次数
+      // 会员不扣次数
+      if (isPremium) {
+        return NextResponse.json({ success: true });
+      }
+      
+      // 免费版增加次数
       const today = new Date().toISOString().split('T')[0];
       
-      // 使用 upsert 自动处理今天是否已有记录
       const { data: existing } = await supabase
         .from('user_usage')
         .select('count')
