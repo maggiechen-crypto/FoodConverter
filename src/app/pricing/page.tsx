@@ -47,8 +47,8 @@ export default function PricingPage() {
     console.log('Loading PayPal SDK...');
     const script = document.createElement("script");
     script.id = "paypal-sdk";
-    // 使用沙箱模式
-    script.src = "https://www.sandbox.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD&mode=sandbox";
+    // 使用正式环境
+    script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD";
     script.async = false;
     script.onload = () => console.log('PayPal SDK loaded');
     script.onerror = () => console.error('Failed to load PayPal');
