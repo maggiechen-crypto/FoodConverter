@@ -18,12 +18,6 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(false);
   const [tier, setTier] = useState<"basic" | "pro">("basic");
   const [currentTier, setCurrentTier] = useState<string>("free");
-  const [debugInfo, setDebugInfo] = useState('');
-
-  // 添加调试信息
-  useEffect(() => {
-    setDebugInfo(`session: ${!!session}, paypal: ${!!window.paypal}, tier: ${tier}`);
-  }, [session, tier]);
 
   // 检查当前会员状态
   useEffect(() => {
@@ -38,118 +32,74 @@ export default function PricingPage() {
       .catch(console.error);
   }, [session]);
 
-  // 加载 PayPal SDK (改用同步加载)
+  // 加载 PayPal SDK
   useEffect(() => {
-    if (window.paypal) {
-      console.log('PayPal already available');
-      return;
-    }
-    console.log('Loading PayPal SDK...');
+    if (window.paypal) return;
     const script = document.createElement("script");
     script.id = "paypal-sdk";
-    // 使用正式环境
     script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD";
     script.async = false;
-    script.onload = () => console.log('PayPal SDK loaded');
-    script.onerror = () => console.error('Failed to load PayPal');
     document.head.appendChild(script);
-    script.onload = () => console.log('PayPal SDK loaded');
-    document.body.appendChild(script);
   }, []);
 
   // 渲染 PayPal 按钮
   useEffect(() => {
-    // 立即渲染按钮（如果 PayPal 已加载）或等待加载
-    const tryRender = () => {
-      if (!window.paypal) {
-        console.log('PayPal not loaded yet, waiting...');
-        return false;
-      }
-      
-      const tierConfig = {
-        basic: { price: "2.99" },
-        pro: { price: "5.99" }
-      };
-      
-      const config = tierConfig[tier];
-      
-      // 清理旧的按钮容器
-      const container = document.getElementById(`paypal-button-${tier}`);
-      if (!container) {
-        console.log('Container not found');
-        return false;
-      }
-      container.innerHTML = '';
-      
-      window.paypal.Buttons({
-        style: { layout: "vertical", color: "gold", shape: "rect" },
-        createOrder: (_data: any, actions: any) => {
-          return actions.order.create({
-            purchase_units: [{
-              description: `SnapCook ${tier === "basic" ? "Basic" : "Pro"} Plan`,
-              amount: { currency_code: "USD", value: config.price }
-            }]
-          });
-        },
-        onApprove: async (_data: any, actions: any) => {
-          setLoading(true);
-          try {
-            const order = await actions.order.capture();
-            // 调用 API 开通会员
-            const res = await fetch('/api/subscription', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'upgrade',
-                user_id: session?.user?.email,
-                tier: tier
-              })
-            });
-            const result = await res.json();
-            if (result.success) {
-              alert("升级成功！🎉 感谢您的支持");
-              window.location.reload();
-            } else {
-              alert("支付成功，但开通会员失败，请联系客服");
-            }
-          } catch (err) {
-            console.error(err);
-            alert("支付出错，请重试");
-          }
-          setLoading(false);
-        },
-        onError: (err: any) => {
-          console.error("PayPal Error:", err);
-          alert("Payment failed. Please try again.");
-        }
-      }).render(`#paypal-button-${tier}`);
-      return true;
-    };
-
-    // 尝试渲染
-    if (session && tryRender()) return;
-
-    // 如果没成功，等待 PayPal 加载
-    if (!session) {
-      console.log('No session');
-      return;
-    }
+    if (!session || !window.paypal) return;
     
-    const checkPaypal = setInterval(() => {
-      if (window.paypal && tryRender()) {
-        clearInterval(checkPaypal);
+    const tierConfig = {
+      basic: { price: "2.99" },
+      pro: { price: "5.99" }
+    };
+    
+    const config = tierConfig[tier];
+    const container = document.getElementById(`paypal-button-${tier}`);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    window.paypal.Buttons({
+      style: { layout: "vertical", color: "gold", shape: "rect" },
+      createOrder: (_data: any, actions: any) => {
+        return actions.order.create({
+          purchase_units: [{
+            description: `SnapCook ${tier === "basic" ? "Basic" : "Pro"} Plan`,
+            amount: { currency_code: "USD", value: config.price }
+          }]
+        });
+      },
+      onApprove: async (_data: any, actions: any) => {
+        setLoading(true);
+        try {
+          const order = await actions.order.capture();
+          const res = await fetch('/api/subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'upgrade',
+              user_id: session?.user?.email,
+              tier: tier
+            })
+          });
+          const result = await res.json();
+          if (result.success) {
+            alert("升级成功！🎉 感谢您的支持");
+            window.location.reload();
+          } else {
+            alert("支付成功，但开通会员失败，请联系客服");
+          }
+        } catch (err) {
+          alert("支付出错，请重试");
+        }
+        setLoading(false);
+      },
+      onError: (err: any) => {
+        alert("Payment failed. Please try again.");
       }
-    }, 500);
-    setTimeout(() => clearInterval(checkPaypal), 15000);
+    }).render(`#paypal-button-${tier}`);
   }, [session, tier]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
       <div className="max-w-4xl mx-auto">
-        {/* 调试信息 */}
-        <div className="bg-yellow-200 text-black p-2 mb-4 rounded text-xs">
-          DEBUG: {debugInfo}
-        </div>
         {/* 顶部导航 */}
         <div className="flex justify-between items-center mb-8">
           <Link href="/" className="text-white text-lg font-medium">← 返回</Link>
@@ -257,7 +207,7 @@ export default function PricingPage() {
             {session ? (
               <button 
                 type="button"
-                onClick={() => { console.log('点击了pro'); setTier("pro"); }}
+                onClick={() => setTier("pro")}
                 className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90"
               >
                 {loading && tier === "pro" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
