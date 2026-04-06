@@ -51,14 +51,12 @@ export default function PricingPage() {
 
   // 渲染 PayPal 按钮
   useEffect(() => {
-    if (!session || !window.paypal) {
-      if (!session) console.log('No session');
-      if (!window.paypal) console.log('PayPal not loaded yet');
-      return;
-    }
-    
-    const renderButton = () => {
-      if (!window.paypal) return;
+    // 立即渲染按钮（如果 PayPal 已加载）或等待加载
+    const tryRender = () => {
+      if (!window.paypal) {
+        console.log('PayPal not loaded yet, waiting...');
+        return false;
+      }
       
       const tierConfig = {
         basic: { price: "2.99" },
@@ -69,7 +67,10 @@ export default function PricingPage() {
       
       // 清理旧的按钮容器
       const container = document.getElementById(`paypal-button-${tier}`);
-      if (!container) return;
+      if (!container) {
+        console.log('Container not found');
+        return false;
+      }
       container.innerHTML = '';
       
       window.paypal.Buttons({
@@ -114,20 +115,24 @@ export default function PricingPage() {
           alert("Payment failed. Please try again.");
         }
       }).render(`#paypal-button-${tier}`);
+      return true;
     };
 
-    // 等待 SDK 加载
-    if (window.paypal) {
-      renderButton();
-    } else {
-      const checkPaypal = setInterval(() => {
-        if (window.paypal) {
-          clearInterval(checkPaypal);
-          renderButton();
-        }
-      }, 500);
-      setTimeout(() => clearInterval(checkPaypal), 10000);
+    // 尝试渲染
+    if (session && tryRender()) return;
+
+    // 如果没成功，等待 PayPal 加载
+    if (!session) {
+      console.log('No session');
+      return;
     }
+    
+    const checkPaypal = setInterval(() => {
+      if (window.paypal && tryRender()) {
+        clearInterval(checkPaypal);
+      }
+    }, 500);
+    setTimeout(() => clearInterval(checkPaypal), 15000);
   }, [session, tier]);
 
   return (
