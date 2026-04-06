@@ -58,7 +58,8 @@ export default function PricingPage() {
       
       // 清理旧的按钮容器
       const container = document.getElementById(`paypal-button-${tier}`);
-      if (!container || container.innerHTML.trim()) return;
+      if (!container) return;
+      container.innerHTML = '';
       
       window.paypal.Buttons({
         style: { layout: "vertical", color: "gold", shape: "rect" },
