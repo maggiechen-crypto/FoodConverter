@@ -126,7 +126,7 @@ export default function Profile() {
               已使用 {usageCount} 次，剩余 {monthlyLimit - usageCount} 次
             </p>
             <Link 
-              href="/profile/vip"
+              href="/pricing"
               className="block mt-3 text-center py-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl text-sm font-medium hover:opacity-90"
             >
               升级为会员，享无限次数 →
