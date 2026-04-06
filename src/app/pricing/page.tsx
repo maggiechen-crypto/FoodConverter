@@ -38,20 +38,21 @@ export default function PricingPage() {
       .catch(console.error);
   }, [session]);
 
-  // 加载 PayPal SDK
+  // 加载 PayPal SDK (改用同步加载)
   useEffect(() => {
-    if (document.getElementById("paypal-sdk")) {
-      console.log('PayPal SDK already loaded');
+    if (window.paypal) {
+      console.log('PayPal already available');
       return;
     }
     console.log('Loading PayPal SDK...');
     const script = document.createElement("script");
     script.id = "paypal-sdk";
-    script.src = "https://www.sandbox.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD&mode=sandbox";
-    script.async = true;
-    script.onload = () => console.log('PayPal SDK loaded successfully');
-    script.onerror = () => console.error('Failed to load PayPal SDK');
-    document.body.appendChild(script);
+    // 改回正式环境测试
+    script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD";
+    script.async = false;
+    script.onload = () => console.log('PayPal SDK loaded');
+    script.onerror = () => console.error('Failed to load PayPal');
+    document.head.appendChild(script);
     script.onload = () => console.log('PayPal SDK loaded');
     document.body.appendChild(script);
   }, []);
