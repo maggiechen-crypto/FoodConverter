@@ -18,6 +18,12 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(false);
   const [tier, setTier] = useState<"basic" | "pro">("basic");
   const [currentTier, setCurrentTier] = useState<string>("free");
+  const [debugInfo, setDebugInfo] = useState('');
+
+  // 添加调试信息
+  useEffect(() => {
+    setDebugInfo(`session: ${!!session}, paypal: ${!!window.paypal}, tier: ${tier}`);
+  }, [session, tier]);
 
   // 检查当前会员状态
   useEffect(() => {
@@ -127,6 +133,10 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
       <div className="max-w-4xl mx-auto">
+        {/* 调试信息 */}
+        <div className="bg-yellow-200 text-black p-2 mb-4 rounded text-xs">
+          DEBUG: {debugInfo}
+        </div>
         {/* 顶部导航 */}
         <div className="flex justify-between items-center mb-8">
           <Link href="/" className="text-white text-lg font-medium">← 返回</Link>
