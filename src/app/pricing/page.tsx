@@ -37,7 +37,7 @@ export default function PricingPage() {
     if (document.getElementById("paypal-sdk")) return;
     const script = document.createElement("script");
     script.id = "paypal-sdk";
-    script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD";
+    script.src = "https://www.sandbox.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD&mode=sandbox";
     script.async = true;
     document.body.appendChild(script);
   }, []);
