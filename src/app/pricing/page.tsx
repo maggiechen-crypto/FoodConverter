@@ -215,7 +215,7 @@ export default function PricingPage() {
             {session ? (
               <button 
                 type="button"
-                onClick={() => { alert('点击成功！'); setTier("basic"); }}
+                onClick={() => setTier("basic")}
                 onTouchStart={() => { alert('点击成功！'); setTier("basic"); }}
                 className="w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium hover:opacity-90"
               >
