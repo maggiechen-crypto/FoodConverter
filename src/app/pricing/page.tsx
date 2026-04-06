@@ -186,7 +186,8 @@ export default function PricingPage() {
             </ul>
             {session ? (
               <button 
-                onClick={() => setTier("basic")}
+                type="button"
+                onClick={() => { console.log('点击了basic'); setTier("basic"); }}
                 className="w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium hover:opacity-90"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
@@ -226,7 +227,8 @@ export default function PricingPage() {
             </ul>
             {session ? (
               <button 
-                onClick={() => setTier("pro")}
+                type="button"
+                onClick={() => { console.log('点击了pro'); setTier("pro"); }}
                 className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90"
               >
                 {loading && tier === "pro" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
