@@ -56,7 +56,9 @@ export default function PricingPage() {
     if (!container) return;
     container.innerHTML = '';
     
-    window.paypal.Buttons({
+    // 确保 paypal SDK 加载完成
+    setTimeout(() => {
+      window.paypal.Buttons({
       style: { layout: "vertical", color: "gold", shape: "rect" },
       createOrder: (_data: any, actions: any) => {
         return actions.order.create({
@@ -97,11 +99,11 @@ export default function PricingPage() {
             alert("升级成功！🎉 感谢您的支持");
             window.location.href = '/profile';
           } else {
-            alert("支付成功，但开通会员失败: " + (result.error || ""));
+            alert("支付成功，但开通会员失败: " + (result.error || JSON.stringify(result));
           }
         } catch (err) {
           console.error("Payment error:", err);
-          alert("支付出错，请重试");
+          alert("支付出错，请重试: " + err);
         }
         setLoading(false);
       },
@@ -109,6 +111,7 @@ export default function PricingPage() {
         alert("Payment failed. Please try again.");
       }
     }).render(`#paypal-button-${tier}`);
+    }, 500);
   }, [session, tier]);
 
   return (
@@ -180,7 +183,6 @@ export default function PricingPage() {
               <button 
                 type="button"
                 onClick={() => setTier("basic")}
-                onTouchStart={() => { alert('点击成功！'); setTier("basic"); }}
                 className="w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium hover:opacity-90"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
