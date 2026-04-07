@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   User,
   Clock,
-  Gem
+  Gem,
+  Lock
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,6 +26,20 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [usageCount, setUsageCount] = useState(0);
 
+  const isBasicOrPro = currentTier === 'basic' || currentTier === 'pro';
+  const isPro = currentTier === 'pro';
+
+  // 处理功能点击（非会员提示升级）
+  const handleFeatureClick = (e: React.MouseEvent, requiresBasic: boolean, targetHref: string) => {
+    e.preventDefault();
+    if (!isBasicOrPro && requiresBasic) {
+      alert("请升级为会员后即可使用此功能");
+      router.push('/pricing');
+      return;
+    }
+    router.push(targetHref);
+  };
+
   // 从数据库获取会员状态
   useEffect(() => {
     if (status !== "authenticated" || !session?.user?.email) {
@@ -32,7 +47,6 @@ export default function Profile() {
       return;
     }
 
-    // 获取会员状态
     fetch('/api/subscription', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -45,14 +59,11 @@ export default function Profile() {
       .catch(console.error)
       .finally(() => setLoading(false));
 
-    // 获取使用次数（暂时写死，实际应该从数据库读取）
     setUsageCount(3);
   }, [session, status]);
 
-  const isPremium = currentTier === 'basic' || currentTier === 'pro';
   const usagePercent = (usageCount / 10) * 100;
 
-  // 未登录时跳转回首页
   if (status === "unauthenticated") {
     router.push("/");
     return null;
@@ -64,33 +75,33 @@ export default function Profile() {
     pro: "高级会员"
   };
 
-  const menuItems: {
-    title: string;
-    icon: any;
-    items: { label: string; icon: any; href: string; count?: number }[];
-  }[] = [
+  // 菜单配置 - requiresBasic 表示需要基础会员或高级会员
+  const menuSections = [
     {
       title: "我的食谱库",
       icon: ChefHat,
+      requiresBasic: true,
       items: [
-        { label: "收藏食谱", icon: Heart, href: "/profile/collections", count: 0 },
-        { label: "已做过的", icon: CheckCircle, href: "/profile/cooked", count: 0 },
-        { label: "AI 生成的", icon: Sparkles, href: "/profile/generated", count: 0 },
+        { label: "收藏食谱", icon: Heart, href: "/profile/collections", requiresBasic: true },
+        { label: "已做过的", icon: CheckCircle, href: "/profile/cooked", requiresBasic: true },
+        { label: "AI 生成的", icon: Sparkles, href: "/profile/generated", requiresBasic: true },
       ],
     },
     {
       title: "偏好设置",
       icon: Settings,
+      requiresBasic: true,
       items: [
-        { label: "口味偏好", icon: User, href: "/profile/preferences" },
-        { label: "通知设置", icon: Clock, href: "/profile/notifications" },
+        { label: "口味偏好", icon: User, href: "/profile/preferences", requiresBasic: true },
+        { label: "通知设置", icon: Clock, href: "/profile/notifications", requiresBasic: true },
       ],
     },
     {
       title: "会员中心",
       icon: Crown,
+      requiresBasic: false,
       items: [
-        { label: `当前：${tierLabels[currentTier]}`, icon: Crown, href: "/pricing" },
+        { label: `当前：${tierLabels[currentTier]}`, icon: Crown, href: "/pricing", requiresBasic: false },
       ],
     },
   ];
@@ -98,7 +109,6 @@ export default function Profile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
       <div className="max-w-2xl mx-auto">
-        {/* 顶部导航 */}
         <div className="flex items-center justify-between mb-6">
           <button 
             onClick={() => router.back()}
@@ -108,10 +118,9 @@ export default function Profile() {
             <span>返回</span>
           </button>
           <h1 className="text-xl font-bold text-white">个人中心</h1>
-          <div className="w-16" /> {/* 占位保持对称 */}
+          <div className="w-16" />
         </div>
 
-        {/* 用户信息卡片 */}
         <div className="bg-white rounded-2xl p-6 shadow-lg mb-4">
           <div className="flex items-center gap-4">
             {session?.user?.image ? (
@@ -136,8 +145,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* 使用额度卡片 - 免费版显示，会员版隐藏 */}
-        {!isPremium && (
+        {!isBasicOrPro && (
           <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-500">📈 本月使用额度</h3>
@@ -146,7 +154,7 @@ export default function Profile() {
             <div className="flex items-center gap-3 mb-2">
               <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-full transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-full"
                   style={{ width: `${Math.min(usagePercent, 100)}%` }}
                 />
               </div>
@@ -166,11 +174,10 @@ export default function Profile() {
           </div>
         )}
 
-        {/* 会员版显示 */}
-        {isPremium && (
+        {isBasicOrPro && (
           <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-4 shadow-lg mb-4">
             <div className="flex items-center gap-3 mb-3">
-              {currentTier === 'pro' ? (
+              {isPro ? (
                 <Gem className="w-6 h-6 text-white" />
               ) : (
                 <Crown className="w-6 h-6 text-white" />
@@ -189,7 +196,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* 统计卡片 */}
         <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
           <h3 className="text-sm font-medium text-gray-500 mb-3">📊 我的数据</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
@@ -208,41 +214,38 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* 菜单列表 */}
         <div className="space-y-4">
-          {menuItems.map((section, idx) => (
+          {menuSections.map((section, idx) => (
             <div key={idx} className="bg-white rounded-2xl p-4 shadow-lg">
               <div className="flex items-center gap-2 mb-3">
                 <section.icon className="w-5 h-5 text-purple-500" />
                 <h3 className="font-medium text-gray-800">{section.title}</h3>
               </div>
               <div className="space-y-1">
-                {section.items.map((item, itemIdx) => (
-                  <Link
-                    key={itemIdx}
-                    href={item.href}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon className="w-5 h-5 text-gray-400" />
-                      <span className="text-gray-700">{item.label}</span>
+                {section.items.map((item, itemIdx) => {
+                  const isLocked = item.requiresBasic && !isBasicOrPro;
+                  return (
+                    <div
+                      key={itemIdx}
+                      onClick={(e) => isLocked ? handleFeatureClick(e, item.requiresBasic, item.href) : router.push(item.href)}
+                      className={`flex items-center justify-between p-3 rounded-xl transition-colors ${isLocked ? 'cursor-pointer hover:bg-gray-50' : 'cursor-pointer hover:bg-gray-50'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className={`w-5 h-5 ${isLocked ? 'text-gray-300' : 'text-gray-400'}`} />
+                        <span className={isLocked ? 'text-gray-400' : 'text-gray-700'}>{item.label}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {isLocked && <Lock className="w-4 h-4 text-gray-400" />}
+                        <span className="text-gray-400">→</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {item.count !== undefined && item.count > 0 && (
-                        <span className="px-2 py-0.5 bg-purple-100 text-purple-600 text-xs rounded-full">
-                          {item.count}
-                        </span>
-                      )}
-                      <span className="text-gray-400">→</span>
-                    </div>
-                  </Link>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
         </div>
 
-        {/* 退出登录 */}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           className="w-full mt-6 p-4 bg-white/20 text-white rounded-2xl font-medium flex items-center justify-center gap-2 hover:bg-white/30 transition-colors"
@@ -251,7 +254,6 @@ export default function Profile() {
           退出登录
         </button>
 
-        {/* 版本信息 */}
         <p className="text-center text-white/50 text-xs mt-4">
           SnapCook v1.0.0
         </p>
