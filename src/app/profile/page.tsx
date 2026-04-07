@@ -30,10 +30,10 @@ export default function Profile() {
   const isPro = currentTier === 'pro';
 
   // 处理功能点击（非会员提示升级）
-  const handleFeatureClick = (e: React.MouseEvent, requiresBasic: boolean, targetHref: string) => {
+  const handleFeatureClick = (e: React.MouseEvent, requiresPro: boolean, targetHref: string) => {
     e.preventDefault();
-    if (!isBasicOrPro && requiresBasic) {
-      alert("请升级为会员后即可使用此功能");
+    if (!isPro && requiresPro) {
+      alert("请升级为高级会员后即可使用此功能");
       router.push('/pricing');
       return;
     }
@@ -75,33 +75,33 @@ export default function Profile() {
     pro: "高级会员"
   };
 
-  // 菜单配置 - requiresBasic 表示需要基础会员或高级会员
+  // 菜单配置 - requiresPro 表示需要基础会员或高级会员
   const menuSections = [
     {
       title: "我的食谱库",
       icon: ChefHat,
-      requiresBasic: true,
+      requiresPro: true,
       items: [
-        { label: "收藏食谱", icon: Heart, href: "/profile/collections", requiresBasic: true },
-        { label: "已做过的", icon: CheckCircle, href: "/profile/cooked", requiresBasic: true },
-        { label: "AI 生成的", icon: Sparkles, href: "/profile/generated", requiresBasic: true },
+        { label: "收藏食谱", icon: Heart, href: "/profile/collections", requiresPro: true },
+        { label: "已做过的", icon: CheckCircle, href: "/profile/cooked", requiresPro: true },
+        { label: "AI 生成的", icon: Sparkles, href: "/profile/generated", requiresPro: true },
       ],
     },
     {
       title: "偏好设置",
       icon: Settings,
-      requiresBasic: true,
+      requiresPro: true,
       items: [
-        { label: "口味偏好", icon: User, href: "/profile/preferences", requiresBasic: true },
-        { label: "通知设置", icon: Clock, href: "/profile/notifications", requiresBasic: true },
+        { label: "口味偏好", icon: User, href: "/profile/preferences", requiresPro: true },
+        { label: "通知设置", icon: Clock, href: "/profile/notifications", requiresPro: true },
       ],
     },
     {
       title: "会员中心",
       icon: Crown,
-      requiresBasic: false,
+      requiresPro: false,
       items: [
-        { label: `当前：${tierLabels[currentTier]}`, icon: Crown, href: "/pricing", requiresBasic: false },
+        { label: `当前：${tierLabels[currentTier]}`, icon: Crown, href: "/pricing", requiresPro: false },
       ],
     },
   ];
@@ -223,11 +223,11 @@ export default function Profile() {
               </div>
               <div className="space-y-1">
                 {section.items.map((item, itemIdx) => {
-                  const isLocked = item.requiresBasic && !isBasicOrPro;
+                  const isLocked = item.requiresPro && !isBasicOrPro;
                   return (
                     <div
                       key={itemIdx}
-                      onClick={(e) => isLocked ? handleFeatureClick(e, item.requiresBasic, item.href) : router.push(item.href)}
+                      onClick={(e) => isLocked ? handleFeatureClick(e, item.requiresPro, item.href) : router.push(item.href)}
                       className={`flex items-center justify-between p-3 rounded-xl transition-colors ${isLocked ? 'cursor-pointer hover:bg-gray-50' : 'cursor-pointer hover:bg-gray-50'}`}
                     >
                       <div className="flex items-center gap-3">
