@@ -19,6 +19,7 @@ export default function Home() {
   
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
   const [remainingUsage, setRemainingUsage] = useState<number>(2);
+  const [currentTier, setCurrentTier] = useState<string>("free");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
   const [imageBase64, setImageBase64] = useState("");
@@ -43,6 +44,7 @@ export default function Home() {
         .then(data => {
           if (data.remaining !== undefined) {
             setRemainingUsage(data.remaining);
+            setCurrentTier(data.tier || 'free');
           }
         })
         .catch(console.error);
@@ -196,12 +198,25 @@ export default function Home() {
         {/* 显示剩余次数 */}
         {session && (
           <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 mb-4 flex items-center justify-between">
-            <span className="text-white text-sm">今日剩余：</span>
+            {currentTier !== 'free' ? (
+              <span className="text-white text-sm">剩余：</span>
+            ) : (
+              <span className="text-white text-sm">今日剩余：</span>
+            )}
             <div className="flex items-center gap-1">
-              {[...Array(2)].map((_, i) => (
-                <span key={i} className={`w-3 h-3 rounded-full ${i < remainingUsage ? 'bg-green-400' : 'bg-gray-400'}`} />
-              ))}
-              <span className="text-white font-medium ml-2">{remainingUsage}/2</span>
+              {currentTier !== 'free' ? (
+                <>
+                  <span className="text-green-400 text-lg">♾</span>
+                  <span className="text-white font-medium ml-2">无限次</span>
+                </>
+              ) : (
+                <>
+                  {[...Array(2)].map((_, i) => (
+                    <span key={i} className={`w-3 h-3 rounded-full ${i < remainingUsage ? 'bg-green-400' : 'bg-gray-400'}`} />
+                  ))}
+                  <span className="text-white font-medium ml-2">{remainingUsage}/2</span>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -227,7 +242,7 @@ export default function Home() {
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
             {imagePreview && (
-              <button onClick={handleRecognize} disabled={loading || remainingUsage <= 0} className="w-full mt-4 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+              <button onClick={handleRecognize} disabled={loading || (remainingUsage <= 0 && currentTier === "free")} className="w-full mt-4 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChefHat className="w-5 h-5" />}
                 {loading ? loadingText : remainingUsage <= 0 ? "今日次数已用完" : "识别食材"}
               </button>
@@ -241,7 +256,7 @@ export default function Home() {
             <div className="mb-4"><label className="text-sm text-gray-600 block mb-2">📝 可编辑食材（逗号分隔）：</label><textarea value={ingredients} onChange={(e) => setIngredients(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl min-h-[100px]" /></div>
             <div className="flex gap-2">
               <button onClick={() => { setStep("upload"); setImagePreview(""); setImageBase64(""); }} className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-xl">重新拍照</button>
-              <button onClick={handleGenerateRecipe} disabled={loading || remainingUsage <= 0} className="flex-1 py-3 bg-gradient-to-r from-[#11998e] to-[#38ef7d] text-white rounded-xl disabled:opacity-50">
+              <button onClick={handleGenerateRecipe} disabled={loading || (remainingUsage <= 0 && currentTier === "free")} className="flex-1 py-3 bg-gradient-to-r from-[#11998e] to-[#38ef7d] text-white rounded-xl disabled:opacity-50">
                 {loading ? loadingText : remainingUsage <= 0 ? "今日次数已用完" : "生成食谱"}
               </button>
             </div>
