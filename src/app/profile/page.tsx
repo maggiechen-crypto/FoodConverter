@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react"; 
 import { 
   ChefHat, 
   Settings, 
@@ -12,25 +13,56 @@ import {
   LogOut,
   ArrowLeft,
   User,
-  Clock
+  Clock,
+  Gem
 } from "lucide-react";
 import Link from "next/link";
 
 export default function Profile() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [currentTier, setCurrentTier] = useState<string>("free");
+  const [loading, setLoading] = useState(true);
+  const [usageCount, setUsageCount] = useState(0);
 
-  // 模拟数据：实际需要从数据库获取
-  const usageCount = 3;
-  const monthlyLimit = 10;
-  const isPremium = false; // 后续从数据库判断是否为高级会员
-  const usagePercent = (usageCount / monthlyLimit) * 100;
+  // 从数据库获取会员状态
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user?.email) {
+      setLoading(false);
+      return;
+    }
+
+    // 获取会员状态
+    fetch('/api/subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'check', user_id: session.user.email })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setCurrentTier(data.tier || 'free');
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+
+    // 获取使用次数（暂时写死，实际应该从数据库读取）
+    setUsageCount(3);
+  }, [session, status]);
+
+  const isPremium = currentTier === 'basic' || currentTier === 'pro';
+  const usagePercent = (usageCount / 10) * 100;
 
   // 未登录时跳转回首页
   if (status === "unauthenticated") {
     router.push("/");
     return null;
   }
+
+  const tierLabels: Record<string, string> = {
+    free: "免费版",
+    basic: "基础会员", 
+    pro: "高级会员"
+  };
 
   const menuItems: {
     title: string;
@@ -58,7 +90,7 @@ export default function Profile() {
       title: "会员中心",
       icon: Crown,
       items: [
-        { label: "当前：免费版", icon: Crown, href: "/profile/vip" },
+        { label: `当前：${tierLabels[currentTier]}`, icon: Crown, href: "/pricing" },
       ],
     },
   ];
@@ -119,11 +151,11 @@ export default function Profile() {
                 />
               </div>
               <span className="text-sm font-medium text-gray-700">
-                {usageCount}/{monthlyLimit} 次
+                {usageCount}/10 次
               </span>
             </div>
             <p className="text-xs text-gray-400">
-              已使用 {usageCount} 次，剩余 {monthlyLimit - usageCount} 次
+              已使用 {usageCount} 次，剩余 {10 - usageCount} 次
             </p>
             <Link 
               href="/pricing"
@@ -138,13 +170,22 @@ export default function Profile() {
         {isPremium && (
           <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-4 shadow-lg mb-4">
             <div className="flex items-center gap-3 mb-3">
-              <Crown className="w-6 h-6 text-white" />
+              {currentTier === 'pro' ? (
+                <Gem className="w-6 h-6 text-white" />
+              ) : (
+                <Crown className="w-6 h-6 text-white" />
+              )}
               <div>
-                <h3 className="text-white font-medium">高级会员</h3>
+                <h3 className="text-white font-medium">{tierLabels[currentTier]}</h3>
                 <p className="text-white/70 text-xs">无限次使用额度</p>
               </div>
             </div>
-            <p className="text-white/80 text-sm">有效期至：2026年12月31日</p>
+            <Link 
+              href="/pricing"
+              className="inline-block mt-2 px-3 py-1 bg-white/20 text-white rounded-lg text-xs hover:bg-white/30"
+            >
+              查看详情 →
+            </Link>
           </div>
         )}
 
