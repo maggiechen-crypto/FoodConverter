@@ -183,7 +183,7 @@ export default function PricingPage() {
                 <Check className="w-5 h-5 text-green-500" /> 无限次AI生成
               </li>
               <li className="flex items-center gap-2 text-gray-600">
-                <Check className="w-5 h-5 text-green-500" /> 社区无���印
+                <Check className="w-5 h-5 text-green-500" /> 社区无水印
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <Check className="w-5 h-5 text-green-500" /> 专属食谱库
