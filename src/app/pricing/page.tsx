@@ -69,24 +69,38 @@ export default function PricingPage() {
       onApprove: async (_data: any, actions: any) => {
         setLoading(true);
         try {
+          // 先捕获订单
           const order = await actions.order.capture();
+          console.log("Order captured:", order);
+          
+          // 检查用户登录状态
+          if (!session?.user?.email) {
+            alert("请先登录后再支付");
+            setLoading(false);
+            return;
+          }
+          
+          // 调用会员升级 API
           const res = await fetch('/api/subscription', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               action: 'upgrade',
-              user_id: session?.user?.email,
+              user_id: session.user.email,
               tier: tier
             })
           });
           const result = await res.json();
+          console.log("Upgrade result:", result);
+          
           if (result.success) {
             alert("升级成功！🎉 感谢您的支持");
-            window.location.reload();
+            window.location.href = '/profile';
           } else {
-            alert("支付成功，但开通会员失败，请联系客服");
+            alert("支付成功，但开通会员失败: " + (result.error || ""));
           }
         } catch (err) {
+          console.error("Payment error:", err);
           alert("支付出错，请重试");
         }
         setLoading(false);
