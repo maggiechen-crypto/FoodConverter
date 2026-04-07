@@ -18,6 +18,7 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(false);
   const [tier, setTier] = useState<"basic" | "pro">("basic");
   const [currentTier, setCurrentTier] = useState<string>("free");
+  const [paypalLoaded, setPaypalLoaded] = useState(false);
 
   // 检查当前会员状态
   useEffect(() => {
@@ -34,17 +35,21 @@ export default function PricingPage() {
 
   // 加载 PayPal SDK
   useEffect(() => {
-    if (window.paypal) return;
+    if (window.paypal) {
+      setPaypalLoaded(true);
+      return;
+    }
     const script = document.createElement("script");
     script.id = "paypal-sdk";
     script.src = "https://www.paypal.com/sdk/js?client-id=AZ_Ku0abVkadEeOm9TNLflI0SWRB3L9ZjCPksIuWUv1kwVVlnXkT6vGfAROviORSsTC4Zx3cd9bWW2rO&currency=USD";
     script.async = false;
+    script.onload = () => setPaypalLoaded(true);
     document.head.appendChild(script);
   }, []);
 
   // 渲染 PayPal 按钮
   useEffect(() => {
-    if (!session || !window.paypal) return;
+    if (!session || !window.paypal || !paypalLoaded) return;
     
     const tierConfig = {
       basic: { price: "2.99" },
@@ -54,11 +59,11 @@ export default function PricingPage() {
     const config = tierConfig[tier];
     const container = document.getElementById(`paypal-button-${tier}`);
     if (!container) return;
+    
+    // 清理旧的按钮
     container.innerHTML = '';
     
-    // 确保 paypal SDK 加载完成
-    setTimeout(() => {
-      window.paypal.Buttons({
+    window.paypal.Buttons({
       style: { layout: "vertical", color: "gold", shape: "rect" },
       createOrder: (_data: any, actions: any) => {
         return actions.order.create({
@@ -71,9 +76,8 @@ export default function PricingPage() {
       onApprove: async (_data: any, actions: any) => {
         setLoading(true);
         try {
-          // 先捕获订单
-          const order = await actions.order.capture();
-          console.log("Order captured:", order);
+          // 捕获订单
+          await actions.order.capture();
           
           // 检查用户登录状态
           if (!session?.user?.email) {
@@ -92,27 +96,36 @@ export default function PricingPage() {
               tier: tier
             })
           });
+          
+          if (!res.ok) {
+            throw new Error("API request failed");
+          }
+          
           const result = await res.json();
-          console.log("Upgrade result:", result);
           
           if (result.success) {
-            alert("升级成功！🎉 感谢您的支持");
+            // 直接跳转
             window.location.href = '/profile';
           } else {
-            alert("支付成功，但开通会员失败: " + (result.error || JSON.stringify(result));
+            alert("支付成功，开通会员失败，请联系客服");
+            setLoading(false);
           }
         } catch (err) {
           console.error("Payment error:", err);
-          alert("支付出错，请重试: " + err);
+          alert("支付出错，请刷新页面重试");
+          setLoading(false);
         }
-        setLoading(false);
       },
       onError: (err: any) => {
+        console.error("PayPal error:", err);
         alert("Payment failed. Please try again.");
+      },
+      onCancel: () => {
+        alert("Payment cancelled.");
+        setLoading(false);
       }
     }).render(`#paypal-button-${tier}`);
-    }, 500);
-  }, [session, tier]);
+  }, [session, tier, paypalLoaded]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
@@ -170,7 +183,7 @@ export default function PricingPage() {
                 <Check className="w-5 h-5 text-green-500" /> 无限次AI生成
               </li>
               <li className="flex items-center gap-2 text-gray-600">
-                <Check className="w-5 h-5 text-green-500" /> 社区无水印
+                <Check className="w-5 h-5 text-green-500" /> 社区无���印
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <Check className="w-5 h-5 text-green-500" /> 专属食谱库
