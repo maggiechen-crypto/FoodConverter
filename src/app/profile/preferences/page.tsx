@@ -106,7 +106,7 @@ export default function Preferences() {
             {dietOptions.map(d => (
               <button
                 key={d}
-                onClick={() => setPreferences(prev => ({ ...prev, diet: d === prev.diet ? [] : [d] }))}
+                onClick={() => setPreferences(prev => ({ ...prev, diet: prev.diet.includes(d) ? prev.diet.filter(x => x !== d) : [d] }))}
                 className={`px-4 py-2 rounded-full text-sm transition-colors ${
                   preferences.diet.includes(d)
                     ? 'bg-purple-500 text-white'
