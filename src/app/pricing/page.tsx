@@ -162,7 +162,7 @@ export default function PricingPage() {
               </li>
             </ul>
             <button className="w-full py-3 border border-gray-300 text-gray-500 rounded-xl font-medium cursor-not-allowed">
-              {currentTier === "free" ? "当前方案" : "未开通"}
+              {currentTier === "free" ? "当前方案" : ""}
             </button>
           </div>
 
