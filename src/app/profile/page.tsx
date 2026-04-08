@@ -29,7 +29,7 @@ export default function Profile() {
   const isBasicOrPro = currentTier === 'basic' || currentTier === 'pro';
   const isPro = currentTier === 'pro';
 
-  // 处理功能点击（非会员提示升级）
+  // 处理功能点击（只有高级会员才能使用）
   const handleFeatureClick = (e: React.MouseEvent, requiresPro: boolean, targetHref: string) => {
     e.preventDefault();
     if (!isPro && requiresPro) {
@@ -75,7 +75,7 @@ export default function Profile() {
     pro: "高级会员"
   };
 
-  // 菜单配置 - requiresPro 表示需要基础会员或高级会员
+  // 菜单配置 - requiresPro 表示需要高级会员才能使用
   const menuSections = [
     {
       title: "我的食谱库",
@@ -83,8 +83,8 @@ export default function Profile() {
       requiresPro: true,
       items: [
         { label: "收藏食谱", icon: Heart, href: "/profile/collections", requiresPro: true },
-        { label: "已做过的", icon: CheckCircle, href: "/profile/cooked", requiresPro: true },
-        { label: "AI 生成的", icon: Sparkles, href: "/profile/generated", requiresPro: true },
+        { label: "自己的作品", icon: CheckCircle, href: "/profile/cooked", requiresPro: true },
+        { label: "拍照识别的食谱", icon: Sparkles, href: "/profile/generated", requiresPro: true },
       ],
     },
     {
@@ -159,11 +159,11 @@ export default function Profile() {
                 />
               </div>
               <span className="text-sm font-medium text-gray-700">
-                {usageCount}/10 次
+                {usageCount}/3 次
               </span>
             </div>
             <p className="text-xs text-gray-400">
-              已使用 {usageCount} 次，剩余 {10 - usageCount} 次
+              已使用 {usageCount} 次，剩余 {3 - usageCount} 次
             </p>
             <Link 
               href="/pricing"
@@ -205,11 +205,11 @@ export default function Profile() {
             </div>
             <div className="p-3 bg-green-50 rounded-xl">
               <div className="text-2xl font-bold text-green-500">0</div>
-              <div className="text-xs text-gray-500">已做</div>
+              <div className="text-xs text-gray-500">自己的作品</div>
             </div>
             <div className="p-3 bg-purple-50 rounded-xl">
               <div className="text-2xl font-bold text-purple-500">0</div>
-              <div className="text-xs text-gray-500">生成</div>
+              <div className="text-xs text-gray-500">拍照识别的食谱</div>
             </div>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function Profile() {
               </div>
               <div className="space-y-1">
                 {section.items.map((item, itemIdx) => {
-                  const isLocked = item.requiresPro && !isBasicOrPro;
+                  const isLocked = item.requiresPro && !isPro;
                   return (
                     <div
                       key={itemIdx}

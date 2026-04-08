@@ -18,8 +18,9 @@ export default function Home() {
   const router = useRouter();
   
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
-  const [remainingUsage, setRemainingUsage] = useState<number>(2);
+  const [remainingUsage, setRemainingUsage] = useState<number>(0);
   const [currentTier, setCurrentTier] = useState<string>("free");
+  const [usageLimit, setUsageLimit] = useState<number>(3);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
   const [imageBase64, setImageBase64] = useState("");
@@ -45,6 +46,7 @@ export default function Home() {
           if (data.remaining !== undefined) {
             setRemainingUsage(data.remaining);
             setCurrentTier(data.tier || 'free');
+            setUsageLimit(data.limit || 3);
           }
         })
         .catch(console.error);
@@ -198,24 +200,16 @@ export default function Home() {
         {/* 显示剩余次数 */}
         {session && (
           <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 mb-4 flex items-center justify-between">
-            {currentTier !== 'free' ? (
-              <span className="text-white text-sm">剩余：</span>
-            ) : (
-              <span className="text-white text-sm">今日剩余：</span>
-            )}
+            <span className="text-white text-sm">
+              {currentTier === 'free' ? '剩余：' : '本月剩余：'}
+            </span>
             <div className="flex items-center gap-1">
-              {currentTier !== 'free' ? (
+              {remainingUsage > 0 ? (
                 <>
-                  <span className="text-green-400 text-lg">♾</span>
-                  <span className="text-white font-medium ml-2">无限次</span>
+                  <span className="text-white font-medium">{remainingUsage}/{usageLimit}</span>
                 </>
               ) : (
-                <>
-                  {[...Array(2)].map((_, i) => (
-                    <span key={i} className={`w-3 h-3 rounded-full ${i < remainingUsage ? 'bg-green-400' : 'bg-gray-400'}`} />
-                  ))}
-                  <span className="text-white font-medium ml-2">{remainingUsage}/2</span>
-                </>
+                <span className="text-red-300 text-sm">次数已用完</span>
               )}
             </div>
           </div>
@@ -244,7 +238,7 @@ export default function Home() {
             {imagePreview && (
               <button onClick={handleRecognize} disabled={loading || (remainingUsage <= 0 && currentTier === "free")} className="w-full mt-4 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChefHat className="w-5 h-5" />}
-                {loading ? loadingText : remainingUsage <= 0 ? "今日次数已用完" : "识别食材"}
+                {loading ? loadingText : remainingUsage <= 0 ? "本月次数已用完" : "识别食材"}
               </button>
             )}
           </div>
@@ -257,7 +251,7 @@ export default function Home() {
             <div className="flex gap-2">
               <button onClick={() => { setStep("upload"); setImagePreview(""); setImageBase64(""); }} className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-xl">重新拍照</button>
               <button onClick={handleGenerateRecipe} disabled={loading || (remainingUsage <= 0 && currentTier === "free")} className="flex-1 py-3 bg-gradient-to-r from-[#11998e] to-[#38ef7d] text-white rounded-xl disabled:opacity-50">
-                {loading ? loadingText : remainingUsage <= 0 ? "今日次数已用完" : "生成食谱"}
+                {loading ? loadingText : remainingUsage <= 0 ? "本月次数已用完" : "生成食谱"}
               </button>
             </div>
           </div>

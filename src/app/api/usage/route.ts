@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { supabase } from '@/lib/supabase';
 
+// 每月1号重置次数
+function getCurrentMonth() {
+  return new Date().toISOString().slice(0, 7); // "2026-04"
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession();
@@ -11,6 +16,7 @@ export async function POST(req: NextRequest) {
 
     const { action } = await req.json();
     const userId = session.user.email;
+    const currentMonth = getCurrentMonth();
 
     // 检查会员状态
     const { data: sub } = await supabase
@@ -19,41 +25,73 @@ export async function POST(req: NextRequest) {
       .eq('user_id', userId)
       .single();
     
-    const isPremium = sub && sub.status === 'active' && (sub.tier === 'basic' || sub.tier === 'pro');
+    const tier = sub?.tier || 'free';
+    const isBasic = sub && sub.status === 'active' && tier === 'basic';
+    const isPro = sub && sub.status === 'active' && tier === 'pro';
+    const isPremium = isBasic || isPro;
+
+    // 次数限制配置
+    const limits: Record<string, number> = {
+      free: 3,
+      basic: 25,
+      pro: 70
+    };
 
     if (action === 'check') {
-      // 会员无限次
-      if (isPremium) {
-        return NextResponse.json({ remaining: 999, limit: 999, tier: sub.tier });
+      // 免费用户：只有3次，用完就没，不会重置
+      if (tier === 'free') {
+        const { data: usage } = await supabase
+          .from('user_usage')
+          .select('count')
+          .eq('user_id', userId)
+          .single();
+
+        const used = usage?.count || 0;
+        const remaining = Math.max(0, 3 - used);
+        return NextResponse.json({ remaining, limit: 3, tier: 'free' });
       }
       
-      // 免费版检查次数
-      const today = new Date().toISOString().split('T')[0];
+      // 会员：每月次数，每月1号重置
       const { data: usage } = await supabase
         .from('user_usage')
         .select('count')
         .eq('user_id', userId)
-        .eq('date', today)
+        .eq('date', currentMonth)
         .single();
 
-      const remaining = usage ? Math.max(0, 2 - usage.count) : 2;
-      return NextResponse.json({ remaining, limit: 2, tier: 'free' });
+      const used = usage?.count || 0;
+      const remaining = Math.max(0, limits[tier] - used);
+      return NextResponse.json({ remaining, limit: limits[tier], tier });
     }
 
     if (action === 'increment') {
-      // 会员不扣次数
-      if (isPremium) {
+      // 免费用户：累计3次，用完就没（不按月份，直接存总数）
+      if (tier === 'free') {
+        const { data: existing } = await supabase
+          .from('user_usage')
+          .select('count')
+          .eq('user_id', userId)
+          .single();
+
+        if (existing) {
+          await supabase
+            .from('user_usage')
+            .update({ count: existing.count + 1 })
+            .eq('user_id', userId);
+        } else {
+          await supabase
+            .from('user_usage')
+            .insert({ user_id: userId, count: 1 });
+        }
         return NextResponse.json({ success: true });
       }
       
-      // 免费版增加次数
-      const today = new Date().toISOString().split('T')[0];
-      
+      // 会员：每月次数（按月份存储）
       const { data: existing } = await supabase
         .from('user_usage')
         .select('count')
         .eq('user_id', userId)
-        .eq('date', today)
+        .eq('date', currentMonth)
         .single();
 
       if (existing) {
@@ -61,11 +99,11 @@ export async function POST(req: NextRequest) {
           .from('user_usage')
           .update({ count: existing.count + 1 })
           .eq('user_id', userId)
-          .eq('date', today);
+          .eq('date', currentMonth);
       } else {
         await supabase
           .from('user_usage')
-          .insert({ user_id: userId, date: today, count: 1 });
+          .insert({ user_id: userId, date: currentMonth, count: 1 });
       }
 
       return NextResponse.json({ success: true });

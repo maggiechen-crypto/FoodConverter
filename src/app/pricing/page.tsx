@@ -149,7 +149,7 @@ export default function PricingPage() {
             </div>
             <ul className="space-y-3 mb-6">
               <li className="flex items-center gap-2 text-gray-600">
-                <Check className="w-5 h-5 text-green-500" /> 每日2次AI生成
+                <Check className="w-5 h-5 text-green-500" /> 3次AI生成（用完为止）
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <Check className="w-5 h-5 text-green-500" /> 社区浏览与点赞
@@ -162,7 +162,7 @@ export default function PricingPage() {
               </li>
             </ul>
             <button className="w-full py-3 border border-gray-300 text-gray-500 rounded-xl font-medium cursor-not-allowed">
-              {currentTier === "free" ? "当前方案" : "已降级"}
+              {currentTier === "free" ? "当前方案" : "未开通"}
             </button>
           </div>
 
@@ -180,7 +180,7 @@ export default function PricingPage() {
             </div>
             <ul className="space-y-3 mb-6">
               <li className="flex items-center gap-2 text-gray-600">
-                <Check className="w-5 h-5 text-green-500" /> 无限次AI生成
+                <Check className="w-5 h-5 text-green-500" /> 每月25次AI生成
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <Check className="w-5 h-5 text-green-500" /> 社区无水印
@@ -221,7 +221,7 @@ export default function PricingPage() {
             </div>
             <ul className="space-y-3 mb-6">
               <li className="flex items-center gap-2 text-gray-600">
-                <Check className="w-5 h-5 text-green-500" /> 无限次AI生成
+                <Check className="w-5 h-5 text-green-500" /> 每月70次AI生成
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <Check className="w-5 h-5 text-green-500" /> 社区无水印
