@@ -196,9 +196,10 @@ export default function PricingPage() {
               <button 
                 type="button"
                 onClick={() => setTier("basic")}
-                className="w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium hover:opacity-90"
+                disabled={currentTier === "basic"}
+                className={`w-full py-3 rounded-xl font-medium ${currentTier === "basic" ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white hover:opacity-90'}`}
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (currentTier === "basic" ? "当前方案" : "立即升级")}
               </button>
             ) : (
               <Link href="/api/auth/signin" className="block w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium text-center hover:opacity-90">
@@ -237,9 +238,10 @@ export default function PricingPage() {
               <button 
                 type="button"
                 onClick={() => setTier("pro")}
-                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90"
+                disabled={currentTier === "pro"}
+                className={`w-full py-3 rounded-xl font-medium ${currentTier === "pro" ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90'}`}
               >
-                {loading && tier === "pro" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
+                {loading && tier === "pro" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (currentTier === "pro" ? "当前方案" : "立即升级")}
               </button>
             ) : (
               <Link href="/api/auth/signin" className="block w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium text-center hover:opacity-90">
