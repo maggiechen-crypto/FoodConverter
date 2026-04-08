@@ -193,20 +193,25 @@ export default function PricingPage() {
               </li>
             </ul>
             {session ? (
-              <button 
-                type="button"
-                onClick={() => setTier("basic")}
-                disabled={currentTier === "basic"}
-                className={`w-full py-3 rounded-xl font-medium ${currentTier === "basic" ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white hover:opacity-90'}`}
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (currentTier === "basic" ? "当前方案" : "立即升级")}
-              </button>
+              currentTier === "basic" ? (
+                <div className="w-full py-3 bg-purple-100 text-purple-600 rounded-xl font-medium text-center">
+                  基础会员
+                </div>
+              ) : (
+                <button 
+                  type="button"
+                  onClick={() => setTier("basic")}
+                  className="w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium hover:opacity-90"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
+                </button>
+              )
             ) : (
               <Link href="/api/auth/signin" className="block w-full py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium text-center hover:opacity-90">
                 登录后购买
               </Link>
             )}
-            {session && tier === "basic" && (
+            {session && tier === "basic" && currentTier !== "basic" && (
               <div id="paypal-button-basic" className="mt-2"></div>
             )}
           </div>
@@ -235,20 +240,25 @@ export default function PricingPage() {
               </li>
             </ul>
             {session ? (
-              <button 
-                type="button"
-                onClick={() => setTier("pro")}
-                disabled={currentTier === "pro"}
-                className={`w-full py-3 rounded-xl font-medium ${currentTier === "pro" ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:opacity-90'}`}
-              >
-                {loading && tier === "pro" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (currentTier === "pro" ? "当前方案" : "立即升级")}
-              </button>
+              currentTier === "pro" ? (
+                <div className="w-full py-3 bg-yellow-100 text-yellow-600 rounded-xl font-medium text-center">
+                  高级会员
+                </div>
+              ) : (
+                <button 
+                  type="button"
+                  onClick={() => setTier("pro")}
+                  className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium hover:opacity-90"
+                >
+                  {loading && tier === "pro" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '立即升级'}
+                </button>
+              )
             ) : (
               <Link href="/api/auth/signin" className="block w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-medium text-center hover:opacity-90">
                 登录后购买
               </Link>
             )}
-            {session && tier === "pro" && (
+            {session && tier === "pro" && currentTier !== "pro" && (
               <div id="paypal-button-pro" className="mt-2"></div>
             )}
           </div>
