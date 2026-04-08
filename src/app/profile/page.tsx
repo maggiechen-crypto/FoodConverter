@@ -59,7 +59,17 @@ export default function Profile() {
       .catch(console.error)
       .finally(() => setLoading(false));
 
-    setUsageCount(3);
+    // 获取使用次数
+    fetch('/api/usage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'check' })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setUsageCount(data.limit - data.remaining);
+      })
+      .catch(console.error);
   }, [session, status]);
 
   const usagePercent = (usageCount / 10) * 100;
@@ -184,7 +194,9 @@ export default function Profile() {
               )}
               <div>
                 <h3 className="text-white font-medium">{tierLabels[currentTier]}</h3>
-                <p className="text-white/70 text-xs">每月更多使用次数</p>
+                <p className="text-white/70 text-xs">
+                  本月剩余 {currentTier === 'basic' ? 25 - usageCount : 70 - usageCount}/{currentTier === 'basic' ? 25 : 70} 次
+                </p>
               </div>
             </div>
             <Link 
