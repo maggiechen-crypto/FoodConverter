@@ -169,7 +169,7 @@ export default function Profile() {
               href="/pricing"
               className="block mt-3 text-center py-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl text-sm font-medium hover:opacity-90"
             >
-              升级为会员，享无限次数 →
+              升级为会员，享受更多次数 →
             </Link>
           </div>
         )}
@@ -184,7 +184,7 @@ export default function Profile() {
               )}
               <div>
                 <h3 className="text-white font-medium">{tierLabels[currentTier]}</h3>
-                <p className="text-white/70 text-xs">无限次使用额度</p>
+                <p className="text-white/70 text-xs">每月更多使用次数</p>
               </div>
             </div>
             <Link 
