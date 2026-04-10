@@ -167,7 +167,7 @@ export default function Home() {
         {/* 顶部用户栏 */}
         <div className="flex justify-between items-center mb-4">
           <div className="text-white">
-            <h1 className="text-2xl font-bold flex items-center gap-2"><ChefHat className="w-8 h-8" /> FoodConverter</h1>
+            <h1 className="text-2xl font-bold flex items-center gap-2"><ChefHat className="w-8 h-8" /> SnapCook</h1>
             <p className="text-white/80 text-sm">拍照识菜 AI 食谱生成器</p>
           </div>
           <div className="flex items-center gap-2">
