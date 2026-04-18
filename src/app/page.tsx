@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User, UserCircle, MessageCircle, X, Crown, Check } from "lucide-react";
+import { Camera, Loader2, ChefHat, Languages, LogIn, LogOut, User, UserCircle, MessageCircle, X, Crown, Check, Globe } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLang } from "@/components/LangContext";
 
 interface Recipe {
   name: string;
@@ -16,6 +17,7 @@ interface Recipe {
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { lang, setLang } = useLang();
   
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
   const [remainingUsage, setRemainingUsage] = useState<number>(0);
@@ -171,6 +173,14 @@ export default function Home() {
             <p className="text-white/80 text-sm">拍照识菜 AI 食谱生成器</p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLang(lang === "zh" ? "en" : "zh")}
+              className="flex items-center gap-1 px-3 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium"
+              title={lang === "zh" ? "Switch to English" : "切换到中文"}
+            >
+              <Globe className="w-4 h-4" />
+              {lang === "zh" ? "EN" : "中"}
+            </button>
             {status === "loading" ? (
               <Loader2 className="w-5 h-5 text-white animate-spin" />
             ) : session ? (
