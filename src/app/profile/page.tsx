@@ -18,9 +18,11 @@ import {
   Lock
 } from "lucide-react";
 import Link from "next/link";
+import { useLang } from "@/components/LangContext";
 
 export default function Profile() {
   const { data: session, status } = useSession();
+  const { t } = useLang();
   const router = useRouter();
   const [currentTier, setCurrentTier] = useState<string>("free");
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ export default function Profile() {
   const handleFeatureClick = (e: React.MouseEvent, requiresPro: boolean, targetHref: string) => {
     e.preventDefault();
     if (!isPro && requiresPro) {
-      alert("请升级为高级会员后即可使用此功能");
+      alert(t("profile.pleaseUpgrade"));
       router.push('/pricing');
       return;
     }
@@ -80,34 +82,34 @@ export default function Profile() {
   }
 
   const tierLabels: Record<string, string> = {
-    free: "免费版",
-    basic: "基础会员", 
-    pro: "高级会员"
+    free: t("profile.tierFree"),
+    basic: t("profile.tierBasic"), 
+    pro: t("profile.tierPro")
   };
 
   // 菜单配置 - requiresPro 表示需要高级会员才能使用
   const menuSections = [
     {
-      title: "我的食谱库",
+      title: t("profile.myCollections"),
       icon: ChefHat,
-      requiresPro: true,
+      requiresPro: false,
       items: [
-        { label: "收藏食谱", icon: Heart, href: "/profile/collections", requiresPro: true },
-        { label: "自己的作品", icon: CheckCircle, href: "/profile/cooked", requiresPro: true },
-        { label: "拍照识别的食谱", icon: Sparkles, href: "/profile/generated", requiresPro: true },
+        { label: t("profile.menu.collections"), icon: Heart, href: "/profile/collections", requiresPro: false },
+        { label: t("profile.menu.cooked"), icon: CheckCircle, href: "/profile/cooked", requiresPro: false },
+        { label: t("profile.menu.generated"), icon: Sparkles, href: "/profile/generated", requiresPro: false },
       ],
     },
     {
-      title: "偏好设置",
+      title: t("profile.preferences"),
       icon: Settings,
-      requiresPro: true,
+      requiresPro: false,
       items: [
-        { label: "口味偏好", icon: User, href: "/profile/preferences", requiresPro: true },
-        { label: "通知设置", icon: Clock, href: "/profile/notifications", requiresPro: true },
+        { label: t("profile.menu.preferences"), icon: User, href: "/profile/preferences", requiresPro: true },
+        { label: t("profile.notifications"), icon: Clock, href: "/profile/notifications", requiresPro: true },
       ],
     },
     {
-      title: "会员中心",
+      title: t("profile.membership"),
       icon: Crown,
       requiresPro: false,
       items: [
@@ -127,7 +129,7 @@ export default function Profile() {
             <ArrowLeft className="w-5 h-5" />
             <span>返回</span>
           </button>
-          <h1 className="text-xl font-bold text-white">个人中心</h1>
+          <h1 className="text-xl font-bold text-white">{t("profile.title")}</h1>
           <div className="w-16" />
         </div>
 
@@ -159,7 +161,7 @@ export default function Profile() {
           <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-gray-500">📈 本月使用额度</h3>
-              <span className="text-xs text-purple-600 font-medium">免费版</span>
+              <span className="text-xs text-purple-600 font-medium">{tierLabels[currentTier]}</span>
             </div>
             <div className="flex items-center gap-3 mb-2">
               <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -179,7 +181,7 @@ export default function Profile() {
               href="/pricing"
               className="block mt-3 text-center py-2 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl text-sm font-medium hover:opacity-90"
             >
-              升级为会员，享受更多次数 →
+              {t("profile.upgrade")}
             </Link>
           </div>
         )}
@@ -263,7 +265,7 @@ export default function Profile() {
           className="w-full mt-6 p-4 bg-white/20 text-white rounded-2xl font-medium flex items-center justify-center gap-2 hover:bg-white/30 transition-colors"
         >
           <LogOut className="w-5 h-5" />
-          退出登录
+          {t("profile.logout")}
         </button>
 
         <p className="text-center text-white/50 text-xs mt-4">

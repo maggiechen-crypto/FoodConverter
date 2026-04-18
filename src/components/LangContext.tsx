@@ -130,6 +130,31 @@ const translations: Record<Lang, Translations> = {
     "home.recognizeFailed": "识别失败",
     "home.generateFailed": "生成失败",
     "home.dishName": "菜名",
+    
+    // Profile page
+    "profile.title": "个人中心",
+    "profile.myCollections": "我的收藏",
+    "profile.myPosts": "我的晒图",
+    "profile.notifications": "通知设置",
+    "profile.preferences": "偏好设置",
+    "profile.membership": "会员中心",
+    "profile.membershipStatus": "会员状态",
+    "profile.tierFree": "免费版",
+    "profile.tierBasic": "基础会员",
+    "profile.tierPro": "高级会员",
+    "profile.upgrade": "升级为会员，享受更多次数 →",
+    "profile.logout": "退出登录",
+    "profile.noRecords": "暂无记录",
+    "profile.pleaseUpgrade": "请升级为高级会员后即可使用此功能",
+    "profile.remainingUses": "剩余次数",
+    "profile.unlimited": "无限次",
+    "profile.menu": {
+      "collections": "我的收藏",
+      "cooked": "我的晒图",
+      "generated": "生成的食谱",
+      "notifications": "通知设置",
+      "preferences": "偏好设置"
+    }
   },
   en: {
     // Navigation
@@ -252,6 +277,31 @@ const translations: Record<Lang, Translations> = {
     "home.recognizeFailed": "Recognition failed",
     "home.generateFailed": "Generation failed",
     "home.dishName": "Dish name",
+    
+    // Profile page
+    "profile.title": "Profile",
+    "profile.myCollections": "My Collections",
+    "profile.myPosts": "My Posts",
+    "profile.notifications": "Notification Settings",
+    "profile.preferences": "Preferences",
+    "profile.membership": "Membership",
+    "profile.membershipStatus": "Membership Status",
+    "profile.tierFree": "Free",
+    "profile.tierBasic": "Basic",
+    "profile.tierPro": "Premium",
+    "profile.upgrade": "Upgrade for more usage →",
+    "profile.logout": "Sign Out",
+    "profile.noRecords": "No records yet",
+    "profile.pleaseUpgrade": "Please upgrade to Premium to use this feature",
+    "profile.remainingUses": "Remaining uses",
+    "profile.unlimited": "Unlimited",
+    "profile.menu": {
+      "collections": "My Collections",
+      "cooked": "My Posts",
+      "generated": "Generated Recipes",
+      "notifications": "Notifications",
+      "preferences": "Preferences"
+    }
   },
 };
 
