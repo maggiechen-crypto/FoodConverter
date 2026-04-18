@@ -1,21 +1,9 @@
 "use client";
 
-import type { Metadata } from "next";
 import { Camera, ChefHat, Sparkles, Users, Bookmark, Crown, Check, ArrowRight, Download, Image, BookOpen, Heart, Star } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "@/components/LangContext";
 import { LangSwitcher } from "@/components/LangSwitcher";
-
-export const metadata: Metadata = {
-  title: "Features - SnapCook | AI Recipe Generator from Photo",
-  description: "Discover SnapCook's powerful features: AI food recognition, instant recipe generation, personal recipe library, community sharing, and more. Transform any food photo into a delicious recipe in seconds.",
-  keywords: "AI recipe features, food photo to recipe, AI cooking assistant, recipe generator features, smart kitchen, food recognition technology, recipe app features",
-  openGraph: {
-    title: "SnapCook Features - AI Recipe Generator",
-    description: "Transform any food photo into a delicious recipe in seconds. Discover all SnapCook features.",
-    type: "website",
-  },
-};
 
 const features = [
   {
