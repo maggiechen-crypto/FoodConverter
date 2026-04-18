@@ -17,7 +17,7 @@ interface Recipe {
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { lang, setLang } = useLang();
+  const { lang, setLang, t } = useLang();
   
   const [step, setStep] = useState<"upload" | "ingredients" | "recipe">("upload");
   const [remainingUsage, setRemainingUsage] = useState<number>(0);
@@ -67,7 +67,7 @@ export default function Home() {
   };
 
   const handleRecognize = async () => {
-    if (!imageBase64) { setError("请先上传图片"); return; }
+    if (!imageBase64) { setError(t("home.ingredientPrompt")); return; }
     
     // 检查使用次数
     if (remainingUsage <= 0) {
@@ -76,7 +76,7 @@ export default function Home() {
     }
     
     setLoading(true);
-    setLoadingText("正在识别食材...");
+    setLoadingText(t("home.recognize") + "...");
     setError("");
     try {
       const res = await fetch("/api/food", {
@@ -90,14 +90,14 @@ export default function Home() {
       setIngredients(data.result);
       setStep("ingredients");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "识别失败");
+      setError(err instanceof Error ? err.message : t("home.recognizeFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleGenerateRecipe = async () => {
-    if (!ingredients.trim()) { setError("请先识别食材"); return; }
+    if (!ingredients.trim()) { setError(t("home.ingredientsPrompt")); return; }
     
     // 检查使用次数
     if (remainingUsage <= 0) {
@@ -106,7 +106,7 @@ export default function Home() {
     }
     
     setLoading(true);
-    setLoadingText("正在生成食谱...");
+    setLoadingText(t("home.generateRecipe") + "...");
     setError("");
     try {
       // 先增加使用次数
@@ -129,7 +129,7 @@ export default function Home() {
       setRecipe(parseRecipe(data.result));
       setStep("recipe");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "生成失败");
+      setError(err instanceof Error ? err.message : t("home.generateFailed"));
     } finally {
       setLoading(false);
     }
@@ -169,7 +169,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-4">
           <div className="text-white">
             <h1 className="text-2xl font-bold flex items-center gap-2"><ChefHat className="w-8 h-8" /> SnapCook</h1>
-            <p className="text-white/80 text-sm">拍照识菜 AI 食谱生成器</p>
+            <p className="text-white/80 text-sm">{t("home.subtitle")}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -184,7 +184,7 @@ export default function Home() {
               <Loader2 className="w-5 h-5 text-white animate-spin" />
             ) : session ? (
               <div className="flex items-center gap-3">
-                <Link href="/community" className="p-2 bg-white/20 rounded-full hover:bg-white/30" title="社区">
+                <Link href="/community" className="p-2 bg-white/20 rounded-full hover:bg-white/30" title={t("home.community")}>
                   <MessageCircle className="w-5 h-5 text-white" />
                 </Link>
                 <Link href="/profile">
@@ -195,12 +195,12 @@ export default function Home() {
                   )}
                 </Link>
                 <button onClick={() => signOut()} className="px-3 py-1 bg-white/20 text-white rounded-full text-sm flex items-center gap-1 hover:bg-white/30">
-                  <LogOut className="w-4 h-4" /> 退出
+                  <LogOut className="w-4 h-4" /> {t("home.logout")}
                 </button>
               </div>
             ) : (
               <button onClick={() => signIn("google")} className="px-4 py-2 bg-white text-purple-600 rounded-full font-medium flex items-center gap-2 hover:bg-white/90">
-                <LogIn className="w-4 h-4" /> 登录
+                <LogIn className="w-4 h-4" /> {t("home.login")}
               </button>
             )}
           </div>
@@ -210,7 +210,7 @@ export default function Home() {
         {session && (
           <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 mb-4 flex items-center justify-between">
             <span className="text-white text-sm">
-              {currentTier === 'free' ? '剩余：' : '本月剩余：'}
+              {currentTier === 'free' ? t('home.remaining') : t('home.remainingMonth')}
             </span>
             <div className="flex items-center gap-1">
               {remainingUsage > 0 ? (
@@ -218,7 +218,7 @@ export default function Home() {
                   <span className="text-white font-medium">{remainingUsage}/{usageLimit}</span>
                 </>
               ) : (
-                <span className="text-red-300 text-sm">次数已用完</span>
+                <span className="text-red-300 text-sm">{t("home.timesUsedUp")}</span>
               )}
             </div>
           </div>
@@ -230,10 +230,10 @@ export default function Home() {
         {!session && status !== "loading" && (
           <div className="bg-white rounded-2xl p-8 shadow-lg text-center">
             <User className="w-16 h-16 text-purple-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">登录后使用</h2>
-            <p className="text-gray-500 mb-4">点击下方按钮使用 Google 账号登录</p>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">{t("home.loginTitle")}</h2>
+            <p className="text-gray-500 mb-4">{t("home.loginDesc")}</p>
             <button onClick={() => signIn("google")} className="px-6 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium flex items-center gap-2 mx-auto hover:opacity-90">
-              <LogIn className="w-5 h-5" /> 使用 Google 登录
+              <LogIn className="w-5 h-5" /> {t("home.loginBtn")}
             </button>
           </div>
         )}
@@ -241,26 +241,26 @@ export default function Home() {
         {session && step === "upload" && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500">
-              {imagePreview ? <img src={imagePreview} alt="Preview" className="max-h-64 mx-auto rounded-lg" /> : <><Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" /><p className="text-gray-500">点击上传图片或拍照</p></>}
+              {imagePreview ? <img src={imagePreview} alt="Preview" className="max-h-64 mx-auto rounded-lg" /> : <><Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" /><p className="text-gray-500">{t("home.uploadPrompt")}</p></>}
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
             {imagePreview && (
               <button onClick={handleRecognize} disabled={loading || (remainingUsage <= 0 && currentTier === "free")} className="w-full mt-4 py-3 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-xl font-medium disabled:opacity-50 flex items-center justify-center gap-2">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ChefHat className="w-5 h-5" />}
-                {loading ? loadingText : remainingUsage <= 0 ? "本月次数已用完" : "识别食材"}
+                {loading ? loadingText : remainingUsage <= 0 ? t("home.noRemainings") : t("home.recognize")}
               </button>
             )}
           </div>
         )}
         {session && step === "ingredients" && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">🥬 识别出的食材</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">🥬 {t("home.confirmIngredients")}</h2>
             <div className="flex flex-wrap gap-2 mb-4">{detectedIngredients.split(/[,，]/).map((ing, i) => (<span key={i} className="px-4 py-2 bg-gradient-to-r from-[#f093fb] to-[#f5576c] text-white rounded-full text-sm">{ing.trim()}</span>))}</div>
-            <div className="mb-4"><label className="text-sm text-gray-600 block mb-2">📝 可编辑食材（逗号分隔）：</label><textarea value={ingredients} onChange={(e) => setIngredients(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl min-h-[100px]" /></div>
+            <div className="mb-4"><label className="text-sm text-gray-600 block mb-2">📝 {t("home.editIngredients")}（, ）：</label><textarea value={ingredients} onChange={(e) => setIngredients(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl min-h-[100px]" /></div>
             <div className="flex gap-2">
               <button onClick={() => { setStep("upload"); setImagePreview(""); setImageBase64(""); }} className="flex-1 py-3 border border-gray-300 text-gray-600 rounded-xl">重新拍照</button>
               <button onClick={handleGenerateRecipe} disabled={loading || (remainingUsage <= 0 && currentTier === "free")} className="flex-1 py-3 bg-gradient-to-r from-[#11998e] to-[#38ef7d] text-white rounded-xl disabled:opacity-50">
-                {loading ? loadingText : remainingUsage <= 0 ? "本月次数已用完" : "生成食谱"}
+                {loading ? loadingText : remainingUsage <= 0 ? t("home.noRemainings") : t("home.generateRecipe")}
               </button>
             </div>
           </div>
@@ -268,10 +268,10 @@ export default function Home() {
         {session && step === "recipe" && recipe && (
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h2 className="text-xl font-bold text-center mb-6">{recipe.name}</h2>
-            <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🥩 {lang === "zh" ? "食材" : "Ingredients"}</h3><div className="bg-gray-50 p-4 rounded-xl">{recipe.ingredients.join(", ")}</div></div>
-            <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🧂 {lang === "zh" ? "调料" : "Seasonings"}</h3><div className="space-y-2">{recipe.seasonings.map((s, i) => (<div key={i} className="bg-green-50 px-4 py-2 rounded-lg text-sm">{s}</div>))}</div></div>
-            <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">📝 {lang === "zh" ? "步骤" : "Steps"}</h3><ol className="space-y-3">{recipe.steps.map((s, i) => (<li key={i} className="flex gap-3"><span className="flex-shrink-0 w-7 h-7 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-full flex items-center justify-center text-sm font-bold">{i + 1}</span><span className="text-gray-600">{s}</span></li>))}</ol></div>
-            <button onClick={() => { setStep("ingredients"); setRecipe(null); }} className="w-full py-3 border border-gray-300 text-gray-600 rounded-xl">← 返回修改食材</button>
+            <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🥩 {t("home.ingredients")}</h3><div className="bg-gray-50 p-4 rounded-xl">{recipe.ingredients.join(", ")}</div></div>
+            <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">🧂 {t("home.seasonings")}</h3><div className="space-y-2">{recipe.seasonings.map((s, i) => (<div key={i} className="bg-green-50 px-4 py-2 rounded-lg text-sm">{s}</div>))}</div></div>
+            <div className="mb-6"><h3 className="text-lg font-semibold text-purple-600 mb-3">📝 {t("home.steps")}</h3><ol className="space-y-3">{recipe.steps.map((s, i) => (<li key={i} className="flex gap-3"><span className="flex-shrink-0 w-7 h-7 bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white rounded-full flex items-center justify-center text-sm font-bold">{i + 1}</span><span className="text-gray-600">{s}</span></li>))}</ol></div>
+            <button onClick={() => { setStep("ingredients"); setRecipe(null); }} className="w-full py-3 border border-gray-300 text-gray-600 rounded-xl">← {t("home.editIngredients")}</button>
           </div>
         )}
         {loading && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="bg-white rounded-2xl p-8 text-center"><Loader2 className="w-10 h-10 text-purple-600 animate-spin mx-auto mb-4" /><p className="text-gray-600">{loadingText}</p></div></div>}
@@ -284,7 +284,7 @@ export default function Home() {
                 <div className="w-16 h-16 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-full flex items-center justify-center mx-auto mb-4">
                   <Crown className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">次数已用完</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">{t("home.timesUsedUp")}</h3>
                 <p className="text-gray-500">升级会员，无限次生成！</p>
               </div>
               <div className="space-y-3 mb-6">
@@ -292,7 +292,7 @@ export default function Home() {
                   <Check className="w-4 h-4 text-green-500" /> 无限次AI生成
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 text-sm">
-                  <Check className="w-4 h-4 text-green-500" /> 社区无水印
+                  <Check className="w-4 h-4 text-green-500" /> {t("pricing.noWatermark")}
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 text-sm">
                   <Check className="w-4 h-4 text-green-500" /> 专属食谱库
