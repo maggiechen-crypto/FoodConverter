@@ -32,7 +32,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
   const [error, setError] = useState("");
-  const [lang, setLang] = useState<"zh" | "en">("zh");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 检查每日使用次数
