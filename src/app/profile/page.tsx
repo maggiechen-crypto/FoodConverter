@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "@/components/LangContext";
+import { Globe } from "lucide-react";
 
 export default function Profile() {
   const { data: session, status } = useSession();
@@ -127,10 +128,16 @@ export default function Profile() {
             className="flex items-center gap-2 text-white"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>返回</span>
+            <span>{lang === "zh" ? "返回" : "Back"}</span>
           </button>
           <h1 className="text-xl font-bold text-white">{t("profile.title")}</h1>
-          <div className="w-16" />
+          <button
+            onClick={() => setLang(lang === "zh" ? "en" : "zh")}
+            className="flex items-center gap-1 px-3 py-1 bg-white/20 text-white rounded-lg hover:bg-white/30 text-sm"
+          >
+            <Globe className="w-4 h-4" />
+            {lang === "zh" ? "EN" : "中"}
+          </button>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-lg mb-4">
