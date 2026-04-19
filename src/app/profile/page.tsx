@@ -167,7 +167,7 @@ export default function Profile() {
         {!isBasicOrPro && (
           <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-500">📈 本月使用额度</h3>
+              <h3 className="text-sm font-medium text-gray-500">📈 {t("pricing.usageQuota")}</h3>
               <span className="text-xs text-purple-600 font-medium">{tierLabels[currentTier]}</span>
             </div>
             <div className="flex items-center gap-3 mb-2">
@@ -212,25 +212,25 @@ export default function Profile() {
               href="/pricing"
               className="inline-block mt-2 px-3 py-1 bg-white/20 text-white rounded-lg text-xs hover:bg-white/30"
             >
-              查看详情 →
+              {t("pricing.viewDetails")}
             </Link>
           </div>
         )}
 
         <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-3">📊 我的数据</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-3">📊 {t("pricing.myData")}</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="p-3 bg-pink-50 rounded-xl">
               <div className="text-2xl font-bold text-pink-500">0</div>
-              <div className="text-xs text-gray-500">收藏</div>
+              <div className="text-xs text-gray-500">{t("pricing.collections")}</div>
             </div>
             <div className="p-3 bg-green-50 rounded-xl">
               <div className="text-2xl font-bold text-green-500">0</div>
-              <div className="text-xs text-gray-500">自己的作品</div>
+              <div className="text-xs text-gray-500">{t("pricing.myPosts")}</div>
             </div>
             <div className="p-3 bg-purple-50 rounded-xl">
               <div className="text-2xl font-bold text-purple-500">0</div>
-              <div className="text-xs text-gray-500">拍照识别的食谱</div>
+              <div className="text-xs text-gray-500">{t("pricing.generatedRecipes")}</div>
             </div>
           </div>
         </div>

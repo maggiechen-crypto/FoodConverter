@@ -171,6 +171,12 @@ const translations: Record<Lang, Translations> = {
     "pricing.paymentSuccess": "支付成功，开通会员失败，请联系客服",
     "pricing.paymentError": "支付出错，请刷新页面重试",
     "pricing.library": "专属食谱库",
+    "pricing.myData": "我的数据",
+    "pricing.collections": "收藏",
+    "pricing.myPosts": "自己的作品",
+    "pricing.generatedRecipes": "拍照识别的食谱",
+    "pricing.viewDetails": "查看详情 →",
+    "pricing.usageQuota": "本月使用额度",
   },
   en: {
     // Navigation
@@ -334,6 +340,12 @@ const translations: Record<Lang, Translations> = {
     "pricing.paymentSuccess": "Payment success, but failed to activate. Please contact support.",
     "pricing.paymentError": "Payment failed. Please refresh and try again.",
     "pricing.library": "Private Recipe Library",
+    "pricing.myData": "My Data",
+    "pricing.collections": "Collections",
+    "pricing.myPosts": "My Posts",
+    "pricing.generatedRecipes": "Generated",
+    "pricing.viewDetails": "View Details →",
+    "pricing.usageQuota": "This Month's Usage",
   },
 };
 
