@@ -152,6 +152,25 @@ const translations: Record<Lang, Translations> = {
     "profile.menuCooked": "我的晒图",
     "profile.menuGenerated": "生成的食谱",
     "profile.menuPreferences": "偏好设置",
+    
+    // Pricing page
+    "pricing.title": "会员定价",
+    "pricing.free": "免费版",
+    "pricing.basic": "基础会员",
+    "pricing.pro": "高级会员",
+    "pricing.perMonth": "/月",
+    "pricing.aiGenerations": "次AI生成",
+    "pricing.unlimited": "无限次",
+    "pricing.noWatermark": "无水印",
+    "pricing.community": "社区",
+    "pricing.watermark": "水印",
+    "pricing.premiumFeatures": "高级功能",
+    "pricing.upgrade": "立即升级",
+    "pricing.loginToBuy": "登录后购买",
+    "pricing.loginFirst": "请先登录后再支付",
+    "pricing.paymentSuccess": "支付成功，开通会员失败，请联系客服",
+    "pricing.paymentError": "支付出错，请刷新页面重试",
+    "pricing.library": "专属食谱库",
   },
   en: {
     // Navigation
@@ -296,6 +315,25 @@ const translations: Record<Lang, Translations> = {
     "profile.menuCooked": "My Posts",
     "profile.menuGenerated": "Generated Recipes",
     "profile.menuPreferences": "Preferences",
+    
+    // Pricing page
+    "pricing.title": "Membership",
+    "pricing.free": "Free",
+    "pricing.basic": "Basic",
+    "pricing.pro": "Premium",
+    "pricing.perMonth": "/month",
+    "pricing.aiGenerations": "AI generations",
+    "pricing.unlimited": "Unlimited",
+    "pricing.noWatermark": "No watermark",
+    "pricing.community": "Community",
+    "pricing.watermark": "Watermark",
+    "pricing.premiumFeatures": "Premium features",
+    "pricing.upgrade": "Upgrade Now",
+    "pricing.loginToBuy": "Sign in to purchase",
+    "pricing.loginFirst": "Please sign in first",
+    "pricing.paymentSuccess": "Payment success, but failed to activate. Please contact support.",
+    "pricing.paymentError": "Payment failed. Please refresh and try again.",
+    "pricing.library": "Private Recipe Library",
   },
 };
 
