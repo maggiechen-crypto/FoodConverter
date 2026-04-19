@@ -148,13 +148,10 @@ const translations: Record<Lang, Translations> = {
     "profile.pleaseUpgrade": "请升级为高级会员后即可使用此功能",
     "profile.remainingUses": "剩余次数",
     "profile.unlimited": "无限次",
-    "profile.menu": {
-      "collections": "我的收藏",
-      "cooked": "我的晒图",
-      "generated": "生成的食谱",
-      "notifications": "通知设置",
-      "preferences": "偏好设置"
-    }
+    "profile.menuCollections": "我的收藏",
+    "profile.menuCooked": "我的晒图",
+    "profile.menuGenerated": "生成的食谱",
+    "profile.menuPreferences": "偏好设置",
   },
   en: {
     // Navigation
@@ -295,13 +292,10 @@ const translations: Record<Lang, Translations> = {
     "profile.pleaseUpgrade": "Please upgrade to Premium to use this feature",
     "profile.remainingUses": "Remaining uses",
     "profile.unlimited": "Unlimited",
-    "profile.menu": {
-      "collections": "My Collections",
-      "cooked": "My Posts",
-      "generated": "Generated Recipes",
-      "notifications": "Notifications",
-      "preferences": "Preferences"
-    }
+    "profile.menuCollections": "My Collections",
+    "profile.menuCooked": "My Posts",
+    "profile.menuGenerated": "Generated Recipes",
+    "profile.menuPreferences": "Preferences",
   },
 };
 
@@ -333,8 +327,12 @@ export function LangProvider({ children }: { children: ReactNode }) {
   };
 
   // 翻译函数
-  const t = (key: string): string | Record<string, string> => {
-    return translations[lang][key] || translations["zh"][key] || key;
+  const t = (key: string): string => {
+    const value = translations[lang][key] || translations["zh"][key] || key;
+    if (typeof value === 'object') {
+      return key; // fallback for object types
+    }
+    return value;
   };
 
   if (!mounted) {

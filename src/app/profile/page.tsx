@@ -95,9 +95,9 @@ export default function Profile() {
       icon: ChefHat,
       requiresPro: false,
       items: [
-        { label: t("profile.menu.collections"), icon: Heart, href: "/profile/collections", requiresPro: false },
-        { label: t("profile.menu.cooked"), icon: CheckCircle, href: "/profile/cooked", requiresPro: false },
-        { label: t("profile.menu.generated"), icon: Sparkles, href: "/profile/generated", requiresPro: false },
+        { label: t("profile.menuCollections"), icon: Heart, href: "/profile/collections", requiresPro: false },
+        { label: t("profile.menuCooked"), icon: CheckCircle, href: "/profile/cooked", requiresPro: false },
+        { label: t("profile.menuGenerated"), icon: Sparkles, href: "/profile/generated", requiresPro: false },
       ],
     },
     {
@@ -105,7 +105,7 @@ export default function Profile() {
       icon: Settings,
       requiresPro: false,
       items: [
-        { label: t("profile.menu.preferences"), icon: User, href: "/profile/preferences", requiresPro: true },
+        { label: t("profile.menuPreferences"), icon: User, href: "/profile/preferences", requiresPro: true },
         { label: t("profile.notifications"), icon: Clock, href: "/profile/notifications", requiresPro: true },
       ],
     },
