@@ -333,7 +333,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   };
 
   // 翻译函数
-  const t = (key: string): string => {
+  const t = (key: string): string | Record<string, string> => {
     return translations[lang][key] || translations["zh"][key] || key;
   };
 
