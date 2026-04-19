@@ -23,7 +23,7 @@ import { Globe } from "lucide-react";
 
 export default function Profile() {
   const { data: session, status } = useSession();
-  const { t } = useLang();
+  const { t, lang, setLang } = useLang();
   const router = useRouter();
   const [currentTier, setCurrentTier] = useState<string>("free");
   const [loading, setLoading] = useState(true);
