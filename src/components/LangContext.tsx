@@ -5,7 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 type Lang = "zh" | "en";
 
 interface Translations {
-  [key: string]: string;
+  [key: string]: string | Record<string, string>;
 }
 
 const translations: Record<Lang, Translations> = {
